@@ -3,30 +3,33 @@
 
 #include <QMainWindow>
 #include <QString>
-#include <core/CNullFrameProvider.h>
+#include <core/IPlayer.h>
 
 namespace Ui {
 class QEdgeMainWindow;
 }
 
-class QEdgeMainWindow : public QMainWindow, public CNullFrameProviderClient
+class QEdgeMainWindow : public QMainWindow, public IPlayer::IPlayerClient
 {
     Q_OBJECT
 
 public:
     explicit QEdgeMainWindow(QWidget *parent = 0);
-    void Init( IFrameProvider* provider );
-    virtual void OnNewFrame( const QImage& image ) override;
-    virtual QSize TargetSize() override;
     ~QEdgeMainWindow();
+
+    virtual void Init( IPlayer* player ) override;
+    virtual void OnVideo( AVFrame* frame ) override;
+    virtual void OnAudio( AVFrame *frame ) override;
+    virtual void OnFailed( QString err_text ) override;
+    virtual void OnFinished() override;
 
 private slots:
     void OnPlayStopClicked();
 
 private:
     Ui::QEdgeMainWindow *ui;
-    IFrameProvider* m_provider;
-
+    bool m_started;
+    IPlayer* m_player;
 };
 
 #endif // QEDGEMAINWINDOW_H

@@ -1,15 +1,15 @@
 #include <QApplication>
-#include <core/QEdgeFrameProvider.h>
+#include <core/QEdgePlayer.h>
 #include <ui/QEdgeMainWindow.h>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
+    QEdgePlayer player;
     QEdgeMainWindow w;
-    QEdgeFrameProvider provider;
 
-    w.Init( &provider );
+    w.Init( &player );
     w.show();
 
     return a.exec();

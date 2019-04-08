@@ -1,37 +1,57 @@
 #include "ui_QEdgeMainWindow.h"
 #include <ui/QEdgeMainWindow.h>
 
+#include <QDebug>
+
 QEdgeMainWindow::QEdgeMainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::QEdgeMainWindow),
-    m_provider( CNullFrameProvider::Instance() )
+    m_started( false ),
+    m_player( CNullPlayer::Instance() )
 {
     ui->setupUi(this);
 
-    connect( ui->btn_play_stop, SIGNAL(clicked(bool)), this, SLOT(OnPlayStopClicked()));
+    connect( ui->btn_play_stop, SIGNAL( clicked(bool) ), this, SLOT( OnPlayStopClicked() ) );
 }
 
-void QEdgeMainWindow::Init( IFrameProvider *provider )
+void QEdgeMainWindow::Init( IPlayer* player )
 {
-    provider->BindClient( this );
-    m_provider = provider;
+    m_player = player;
+    player->ConnectToPlayer( this );
 }
 
-void QEdgeMainWindow::OnNewFrame( const QImage &image )
+void QEdgeMainWindow::OnVideo( AVFrame *frame )
 {
-    ui->frame_area->UpdateImage( image );
+    ui->frame_area->OnNewFrame( frame );
 }
 
-QSize QEdgeMainWindow::TargetSize()
+void QEdgeMainWindow::OnAudio( AVFrame *frame )
 {
-    return ui->frame_area->size();
+    Q_UNUSED( frame );
+}
+
+void QEdgeMainWindow::OnFailed( QString err_text )
+{
+    qDebug() << "[QEdgeMainWindow] " << err_text ;
+}
+
+void QEdgeMainWindow::OnFinished()
+{
+    //finished
 }
 
 void QEdgeMainWindow::OnPlayStopClicked()
 {
-    SFrameProviderConfig config;
-    config.file_name = QString( "C:/Users/Shemberko/Desktop/test4.mp4" );
-    m_provider->Start( config );
+    if( !m_started )
+    {
+        m_player->Start( QString("C:/Users/Shemberko/Desktop/test.mp4") );
+    }
+    else
+    {
+        m_player->Stop();
+    }
+
+    m_started = !m_started;
 }
 
 QEdgeMainWindow::~QEdgeMainWindow()
