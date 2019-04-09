@@ -27,7 +27,7 @@ void QEdgeMainWindow::OnVideo( AVFrame *frame )
 
 void QEdgeMainWindow::OnAudio( AVFrame *frame )
 {
-    Q_UNUSED( frame );
+    m_audio_reproductor.PlayAudio( frame );
 }
 
 void QEdgeMainWindow::OnFailed( QString err_text )
@@ -45,6 +45,7 @@ void QEdgeMainWindow::OnPlayStopClicked()
     if( !m_started )
     {
         m_player->Start( QString("C:/Users/Shemberko/Desktop/test.mp4") );
+        m_audio_reproductor.Start();
     }
     else
     {

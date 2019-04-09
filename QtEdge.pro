@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui multimedia
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -23,14 +23,16 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 #entrypoint
-SOURCES += src/main.cpp \
-    src/core/QEdgePlayer.cpp
-
+SOURCES += src/main.cpp
 #core
-HEADERS += src/core/QEdgeUtils.h \
-    src/core/QEdgePlayer.h \
-    src/core/IPlayer.h
+
+HEADERS += src/core/IPlayer.h
+
+HEADERS += src/core/QEdgeUtils.h
 SOURCES += src/core/QEdgeUtils.cpp
+
+HEADERS += src/core/QEdgePlayer.h
+SOURCES += src/core/QEdgePlayer.cpp
 
 HEADERS += src/core/IDemuxer.h
 
@@ -51,6 +53,9 @@ HEADERS += src/core/QEdgeMediaController.h
 SOURCES += src/core/QEdgeMediaController.cpp
 
 #ui
+HEADERS += src/core/QEdgeAudioReproductor.h
+SOURCES += src/core/QEdgeAudioReproductor.cpp
+
 HEADERS += src/ui/QEdgeFrameView.h
 SOURCES += src/ui/QEdgeFrameView.cpp
 FORMS += src/ui/QEdgeFrameView.ui

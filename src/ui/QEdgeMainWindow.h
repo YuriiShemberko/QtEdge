@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QString>
 #include <core/IPlayer.h>
+#include <core/QEdgeAudioReproductor.h>
 
 namespace Ui {
 class QEdgeMainWindow;
@@ -28,6 +29,7 @@ private slots:
 
 private:
     Ui::QEdgeMainWindow *ui;
+    QEdgeAudioReproductor m_audio_reproductor;
     bool m_started;
     IPlayer* m_player;
 };
