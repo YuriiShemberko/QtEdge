@@ -9,7 +9,7 @@ extern "C"{
 
 #include <QDebug>
 
-QEdgeDemuxer::QEdgeDemuxer() {}
+QEdgeDemuxer::QEdgeDemuxer() : m_running( false ) {}
 
 void QEdgeDemuxer::Init( IDemuxerSubscriber* subscriber )
 {
@@ -55,7 +55,7 @@ void QEdgeDemuxer::DemuxInThread( void *ctx )
     const char* url = target_url.c_str();
 
     AVFormatContext* format_context = avformat_alloc_context();
-    int error_code = avformat_open_input( &format_context, url, 0, 0 );
+    int error_code = avformat_open_input( &format_context, url, nullptr, nullptr );
 
     if( error_code < 0 )
     {
@@ -64,7 +64,7 @@ void QEdgeDemuxer::DemuxInThread( void *ctx )
         return;
     }
 
-    error_code = avformat_find_stream_info( format_context, 0 );
+    error_code = avformat_find_stream_info( format_context, nullptr );
 
     if( error_code < 0 )
     {
@@ -82,13 +82,13 @@ void QEdgeDemuxer::DemuxInThread( void *ctx )
     {
         if( format_context->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO )
         {
-            video_stream_index = i;
+            video_stream_index = int(i);
             video_stream = format_context->streams[i];
         }
 
         else if( format_context->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO )
         {
-            audio_stream_index = i;
+            audio_stream_index = int(i);
             audio_stream = format_context->streams[i];
         }
     }
