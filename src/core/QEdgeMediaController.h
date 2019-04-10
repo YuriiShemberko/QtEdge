@@ -8,6 +8,8 @@
 #include <core/QEdgeVideoDecoder.h>
 #include <core/QEdgeDemuxer.h>
 
+#include <QElapsedTimer>
+
 class QEdgeMediaController : public IMediaController, public IDecoder::IDecoderSubscriber, public IDemuxer::IDemuxerSubscriber
 {
 public:
@@ -29,10 +31,32 @@ public:
     virtual void OnVideoPacket( AVPacket* packet ) override;
 
 private:
+    struct SSyncContext
+    {
+        double video_clock;
+        double audio_clock;
+
+        double frame_timer;
+        double frame_last_pts;
+        double frame_last_delay;
+
+    } m_sync_ctx;
+
+    void PreprocessVideo( AVFrame* frame );
+    void PreprocessAudio( AVFrame* frame );
+    double SyncVideoFrame( AVFrame* frame, double pts );
+
+    double ComputeDelay( double current_pts );
+
     IMediaControllerSubscriber* m_subscriber;
     QEdgeAudioDecoder m_audio_decoder;
     QEdgeVideoDecoder m_video_decoder;
     QEdgeDemuxer m_demuxer;
+
+    AVStream* m_audio_stream;
+    AVStream* m_video_stream;
+
+    QElapsedTimer m_sync_timer;
 };
 
 #endif //QEDGEMEDIACONTROLLER_H
