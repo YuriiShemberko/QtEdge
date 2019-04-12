@@ -16,6 +16,7 @@ void QEdgeBufferizedContainer::Start()
 
 void QEdgeBufferizedContainer::Stop()
 {
+    m_buffer.clear();
     close();
     m_pos = 0;
 }
@@ -60,12 +61,25 @@ QEdgeAudioReproductor::QEdgeAudioReproductor() :
 QEdgeAudioReproductor::~QEdgeAudioReproductor()
 {
     m_audio_output->stop();
-    delete m_audio_output;
 }
 
 void QEdgeAudioReproductor::Start()
 {
     m_audio_buffer.Start();
+}
+
+void QEdgeAudioReproductor::Stop()
+{
+    if( m_audio_output.get() )
+    {
+        m_audio_output->stop();
+    }
+
+    m_audio_output.release();
+
+    m_audio_buffer.Stop();
+
+    m_audio_output_initialized = false;
 }
 
 void QEdgeAudioReproductor::PlayAudio( AVFrame *audio_frame )
@@ -92,11 +106,9 @@ bool QEdgeAudioReproductor::event( QEvent* ev )
 {
     if( ev->type() == QStartEvent::s_start_event_type )
     {
-        m_audio_output = new QAudioOutput( QAudioDeviceInfo::defaultOutputDevice(), m_format, this );
+        m_audio_output.reset( new QAudioOutput( QAudioDeviceInfo::defaultOutputDevice(), m_format, this ) );
         m_audio_output->start( &m_audio_buffer );
         m_audio_output->setVolume(1);
-        qDebug() << m_audio_output->error();
-        qDebug() << m_audio_output->state();
         return true;
     }
 

@@ -17,7 +17,7 @@ QEdgeVideoDecoder::QEdgeVideoDecoder() :
 void QEdgeVideoDecoder::Init( AVStream *stream, IDecoderSubscriber* subscriber )
 {
     Q_ASSERT( stream );
-    m_stream.reset( stream );
+    m_stream = stream;
     m_subscriber.reset( subscriber );
 
     AVCodecParameters* codec_params = m_stream->codecpar;
@@ -39,8 +39,16 @@ void QEdgeVideoDecoder::Init( AVStream *stream, IDecoderSubscriber* subscriber )
 
 void QEdgeVideoDecoder::StopDecode()
 {
-    FreeQueue();
     m_running = false;
+    FreeQueue();
+
+    if( m_decode_thread.get() )
+    {
+        m_decode_thread->join();
+    }
+
+    m_decode_thread.release();
+    m_codec_context.release();
 }
 
 void QEdgeVideoDecoder::OnNewVideoPacket( AVPacket *packet )
@@ -71,7 +79,7 @@ void QEdgeVideoDecoder::FreeQueue()
 {
     std::lock_guard<std::mutex> queue_guard( m_queue_mutex );
 
-    while( m_packet_queue.empty() )
+    while( !m_packet_queue.empty() )
     {
         AVPacket* packet = m_packet_queue.front();
 

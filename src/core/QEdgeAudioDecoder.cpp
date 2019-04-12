@@ -9,30 +9,42 @@ QEdgeAudioDecoder::QEdgeAudioDecoder() :
 
 void QEdgeAudioDecoder::Init( AVStream *stream, IDecoderSubscriber* subscriber )
 {
-    Q_ASSERT( stream );
-    m_stream.reset( stream );
-    m_subscriber.reset( subscriber );
-
-    AVCodecParameters* codec_params = m_stream->codecpar;
-    AVCodec* codec = avcodec_find_decoder( codec_params->codec_id );
-    m_codec_context.reset( avcodec_alloc_context3( codec ) );
-    avcodec_parameters_to_context( m_codec_context.get(), codec_params );
-
-    int error_code = avcodec_open2( m_codec_context.get(), codec, 0 );
-
-    if( error_code < 0 || !m_codec_context.get() )
+    if( !m_running )
     {
-        m_subscriber->OnDecoderFailed( this, QString( "Unable to start audio decoder, error code: " ).arg( error_code ) );
-        return;
-    }
+        Q_ASSERT( stream );
+        m_stream = stream;
+        m_subscriber.reset( subscriber );
 
-    m_running = true;
-    m_decode_thread.reset( new std::thread( QEdgeAudioDecoder::DecodeThread, this ) );
+        AVCodecParameters* codec_params = m_stream->codecpar;
+        AVCodec* codec = avcodec_find_decoder( codec_params->codec_id );
+
+        m_codec_context.reset( avcodec_alloc_context3( codec ) );
+        avcodec_parameters_to_context( m_codec_context.get(), codec_params );
+
+        int error_code = avcodec_open2( m_codec_context.get(), codec, 0 );
+
+        if( error_code < 0 || !m_codec_context.get() )
+        {
+            m_subscriber->OnDecoderFailed( this, QString( "Unable to start audio decoder, error code: " ).arg( error_code ) );
+            return;
+        }
+
+        m_running = true;
+        m_decode_thread.reset( new std::thread( QEdgeAudioDecoder::DecodeThread, this ) );
+    }
 }
 
 void QEdgeAudioDecoder::StopDecode()
 {
     m_running = false;
+
+    if( m_decode_thread.get() )
+    {
+        m_decode_thread->join();
+    }
+
+    m_decode_thread.release();
+    m_codec_context.release();
     FreeQueue();
 }
 
@@ -40,7 +52,7 @@ void QEdgeAudioDecoder::FreeQueue()
 {
     std::lock_guard<std::mutex> queue_guard( m_queue_mutex );
 
-    while( m_packet_queue.empty() )
+    while( !m_packet_queue.empty() )
     {
         AVPacket* packet = m_packet_queue.front();
 

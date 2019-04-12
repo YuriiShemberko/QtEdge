@@ -10,6 +10,9 @@
 
 #include <QElapsedTimer>
 
+#define AV_SYNC_THRESHOLD 0.01
+#define AV_NOSYNC_THRESHOLD 10.0
+
 class QEdgeMediaController : public IMediaController, public IDecoder::IDecoderSubscriber, public IDemuxer::IDemuxerSubscriber
 {
 public:
@@ -31,32 +34,40 @@ public:
     virtual void OnVideoPacket( AVPacket* packet ) override;
 
 private:
-    struct SSyncContext
+    class QEdgeSynchronizer
     {
-        double video_clock;
-        double audio_clock;
+    public:
+        void Start( AVRational audio_time_base, AVRational video_time_base );
 
-        double frame_timer;
-        double frame_last_pts;
-        double frame_last_delay;
+        double SyncVideo( AVFrame* frame );
+        void SyncAudio( AVFrame* frame );
 
-    } m_sync_ctx;
+    private:
+        double ComputeVideoDelay( AVFrame* frame );
+
+        double m_video_clock;
+        double m_audio_clock;
+
+        double m_frame_timer;
+        double m_frame_last_pts;
+        double m_frame_last_delay;
+
+        QElapsedTimer m_sync_timer;
+
+        std::mutex m_sync_mtx;
+
+        AVRational m_audio_time_base;
+        AVRational m_video_time_base;
+
+    } m_synchronizer;
 
     void PreprocessVideo( AVFrame* frame );
     void PreprocessAudio( AVFrame* frame );
-    double SyncVideoFrame( AVFrame* frame, double pts );
-
-    double ComputeDelay( double current_pts );
 
     IMediaControllerSubscriber* m_subscriber;
     QEdgeAudioDecoder m_audio_decoder;
     QEdgeVideoDecoder m_video_decoder;
     QEdgeDemuxer m_demuxer;
-
-    AVStream* m_audio_stream;
-    AVStream* m_video_stream;
-
-    QElapsedTimer m_sync_timer;
 };
 
 #endif //QEDGEMEDIACONTROLLER_H

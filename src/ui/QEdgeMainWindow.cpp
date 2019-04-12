@@ -2,6 +2,7 @@
 #include <ui/QEdgeMainWindow.h>
 
 #include <QDebug>
+#include <QTimer>
 
 QEdgeMainWindow::QEdgeMainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -44,15 +45,24 @@ void QEdgeMainWindow::OnPlayStopClicked()
 {
     if( !m_started )
     {
-        m_player->Start( QString("C:/Users/Shemberko/Desktop/test.mp4") );
+        m_player->Start( QString("C:/Users/Shemberko/Desktop/10stest.mp4") );
         m_audio_reproductor.Start();
     }
     else
     {
         m_player->Stop();
+        m_audio_reproductor.Stop();
     }
 
     m_started = !m_started;
+
+    ui->btn_play_stop->setEnabled( false );
+    QTimer::singleShot( 300, Qt::PreciseTimer, this, SLOT( EnablePlay() ) );
+}
+
+void QEdgeMainWindow::EnablePlay()
+{
+    ui->btn_play_stop->setEnabled( true );
 }
 
 QEdgeMainWindow::~QEdgeMainWindow()

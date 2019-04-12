@@ -27,7 +27,7 @@ private:
     void OnNewFrame( AVFrame* frame );
     void OnFailed( QString err_text );
 
-    std::unique_ptr<AVStream> m_stream;
+    AVStream* m_stream;
     std::unique_ptr<IDecoderSubscriber> m_subscriber;
     std::unique_ptr<AVCodecContext> m_codec_context;
 

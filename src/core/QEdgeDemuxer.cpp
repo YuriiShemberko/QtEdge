@@ -35,6 +35,7 @@ bool QEdgeDemuxer::Start( QString url )
 void QEdgeDemuxer::Interrupt()
 {
     m_running = false;
+    m_thread.release();
 }
 
 void QEdgeDemuxer::OnFailed( QString err_text )

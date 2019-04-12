@@ -3,9 +3,7 @@
 #include <time.h>
 
 QEdgeMediaController::QEdgeMediaController() :
-    m_subscriber( CNullMediaControllerSubscriber::Instance() ),
-    m_audio_stream(nullptr),
-    m_video_stream(nullptr)
+    m_subscriber( CNullMediaControllerSubscriber::Instance() )
 {}
 
 void QEdgeMediaController::ConnectToController( IMediaController::IMediaControllerSubscriber *subscriber )
@@ -22,14 +20,6 @@ void QEdgeMediaController::Start( QString file_name )
         OnDemuxerFailed( "cannot start demuxer" );
         return;
     }
-
-    m_sync_timer.restart();
-
-    m_sync_ctx.frame_timer = 0;
-    m_sync_ctx.video_clock = m_sync_timer.elapsed() / 1000.0;
-    m_sync_ctx.audio_clock = 0;
-    m_sync_ctx.frame_last_delay = 0;
-    m_sync_ctx.frame_last_pts = 0;
 }
 
 void QEdgeMediaController::Stop()
@@ -67,82 +57,15 @@ void QEdgeMediaController::OnDecoderFailed( IDecoder *sender, QString err_text )
     }
 }
 
-double QEdgeMediaController::ComputeDelay( double curr_pts )
-{
-    double delay = curr_pts - m_sync_ctx.frame_last_pts;
-
-    if (delay <= 0.0 || delay >= 1.0)
-    {
-        // Delay incorrect - use previous one
-        delay = m_sync_ctx.frame_last_pts;
-    }
-
-    // Save for next time
-    m_sync_ctx.frame_last_pts = curr_pts;
-    m_sync_ctx.frame_last_delay = delay;
-
-    m_sync_ctx.frame_timer += delay;
-
-    int elapsed = m_sync_timer.elapsed();
-    double actual_delay = m_sync_ctx.frame_timer - m_sync_timer.elapsed() / 10000.0;
-
-    if(actual_delay < 0.010)
-    {
-        /* Really it should skip the picture instead */
-        actual_delay = 0.010;
-    }
-    return actual_delay;
-}
-
 void QEdgeMediaController::PreprocessVideo( AVFrame* frame )
 {
-    double pts = frame->pts;
-    if( pts == AV_NOPTS_VALUE )
-    {
-        pts = frame->pkt_dts;
-    }
-    if( pts == AV_NOPTS_VALUE )
-    {
-        pts = 0;
-    }
-
-    pts *= av_q2d( m_video_stream->time_base );
-    pts = SyncVideoFrame( frame, pts );
-
-    double delay = ComputeDelay( pts );
-    std::this_thread::sleep_for( std::chrono::milliseconds( 40 ) );
-
-    m_subscriber->OnNewVideoFrame( frame );
+    double delay = m_synchronizer.SyncVideo( frame );
+    std::this_thread::sleep_for( std::chrono::milliseconds( (int)(delay * 1000) ) );
 }
 
 void QEdgeMediaController::PreprocessAudio( AVFrame *frame )
 {
-    if( frame->pts != AV_NOPTS_VALUE )
-    {
-        m_sync_ctx.audio_clock += av_q2d( m_audio_stream->time_base ) * frame->pts;
-    }
-    else
-    {
-        m_sync_ctx.audio_clock += frame->nb_samples / frame->channels * frame->sample_rate;
-    }
-}
-
-double QEdgeMediaController::SyncVideoFrame( AVFrame *frame, double pts )
-{
-    if(pts != 0)
-    {
-        m_sync_ctx.video_clock = pts;
-    }
-    else
-    {
-        pts = m_sync_ctx.video_clock;
-    }
-    double frame_delay = av_q2d( m_video_stream->time_base );
-
-    frame_delay += frame->repeat_pict * (frame_delay * 0.5);
-    m_sync_ctx.video_clock += frame_delay;
-
-    return pts;
+    m_synchronizer.SyncAudio( frame );
 }
 
 void QEdgeMediaController::OnNewFrame( IDecoder *sender, AVFrame *frame )
@@ -150,6 +73,7 @@ void QEdgeMediaController::OnNewFrame( IDecoder *sender, AVFrame *frame )
     if( sender == &m_video_decoder )
     {
         PreprocessVideo( frame );
+        m_subscriber->OnNewVideoFrame( frame );
         //new video
     }
     else if( sender == &m_audio_decoder )
@@ -172,9 +96,7 @@ void QEdgeMediaController::OnDemuxerFinished()
 
 void QEdgeMediaController::InitStream( AVStream *video_stream, AVStream *audio_stream )
 {
-    m_video_stream = video_stream;
-    m_audio_stream = audio_stream;
-
+    m_synchronizer.Start( audio_stream->time_base, video_stream->time_base );
     m_audio_decoder.Init( audio_stream, this );
     m_video_decoder.Init( video_stream, this );
 }
@@ -187,4 +109,116 @@ void QEdgeMediaController::OnAudioPacket( AVPacket *packet )
 void QEdgeMediaController::OnVideoPacket( AVPacket *packet )
 {
     m_video_decoder.OnNewVideoPacket( packet );
+}
+
+void QEdgeMediaController::QEdgeSynchronizer::Start( AVRational audio_time_base, AVRational video_time_base )
+{
+    m_audio_time_base = audio_time_base;
+    m_video_time_base = video_time_base;
+
+    m_sync_timer.restart();
+
+    m_frame_timer = 0;
+    m_video_clock = (double)m_sync_timer.elapsed() / 1000.0;
+    m_audio_clock = (double)m_sync_timer.elapsed() / 1000.0;
+    m_frame_last_delay = 0;
+    m_frame_last_pts = 0;
+}
+
+double QEdgeMediaController::QEdgeSynchronizer::SyncVideo( AVFrame *frame )
+{
+    std::lock_guard<std::mutex> sync_guard( m_sync_mtx );
+
+    return this->ComputeVideoDelay( frame );
+
+    Q_UNUSED( sync_guard );
+}
+
+void QEdgeMediaController::QEdgeSynchronizer::SyncAudio( AVFrame *frame )
+{
+    std::lock_guard<std::mutex> sync_guard( m_sync_mtx );
+
+    if( frame->pts != AV_NOPTS_VALUE )
+    {
+        m_audio_clock += av_q2d( m_audio_time_base ) * frame->pts;
+    }
+    else
+    {
+        m_audio_clock += frame->nb_samples / frame->channels * frame->sample_rate;
+    }
+
+    Q_UNUSED( sync_guard );
+}
+
+double QEdgeMediaController::QEdgeSynchronizer::ComputeVideoDelay( AVFrame* frame )
+{
+    double curr_pts = frame->pts;
+
+    if( curr_pts == AV_NOPTS_VALUE )
+    {
+        curr_pts = frame->pkt_dts;
+    }
+
+    if( curr_pts == AV_NOPTS_VALUE )
+    {
+        curr_pts = 0;
+    }
+
+    curr_pts *= av_q2d( m_video_time_base );
+
+    if( curr_pts != 0 )
+    {
+       m_video_clock = curr_pts;
+    }
+
+    else
+    {
+        curr_pts = m_video_clock;
+    }
+
+    double frame_delay = av_q2d( m_video_time_base );
+
+    frame_delay += frame->repeat_pict * (frame_delay * 0.5);
+    m_video_clock += frame_delay;
+
+    double delay = curr_pts - m_frame_last_pts;
+
+    if( delay <= 0.0 || delay >= 1.0 )
+    {
+        // Delay incorrect - use previous one
+        delay = m_frame_last_delay;
+    }
+
+    // Save for next time
+    m_frame_last_pts = curr_pts;
+    m_frame_last_delay = delay;
+
+    double audio_clock = m_audio_clock;
+    double diff = curr_pts - audio_clock;
+    double sync_threshold = std::max( AV_SYNC_THRESHOLD, delay );
+
+    if( fabs( diff ) < AV_NOSYNC_THRESHOLD)
+    {
+        if( diff <= -sync_threshold )
+        {
+            delay = 0;
+        }
+
+        else if( diff >= sync_threshold )
+        {
+            delay *= 2;
+        }
+    }
+
+    m_frame_timer += delay;
+
+    double actual_delay = m_frame_timer - (double)m_sync_timer.elapsed() / 1000.0;
+
+    if( actual_delay < 0.010 )
+    {
+        //minimal delay
+        actual_delay = 0.010;
+    }
+
+    return actual_delay;
 }

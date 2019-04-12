@@ -6,6 +6,8 @@
 #include <QAudioOutput>
 #include <QEvent>
 
+#include <memory>
+
 class QEdgeBufferizedContainer : public QIODevice
 {
     Q_OBJECT
@@ -35,6 +37,7 @@ public:
     ~QEdgeAudioReproductor();
     void Open();
     void Start();
+    void Stop();
     void PlayAudio( AVFrame* audio_frame );
 
     static int GetSampleSize( AVSampleFormat fmt );
@@ -51,7 +54,7 @@ private:
         QStartEvent() : QEvent(s_start_event_type) {}
     };
 
-    QAudioOutput* m_audio_output;
+    std::unique_ptr<QAudioOutput> m_audio_output;
     QIODevice* m_audio_device;
     QEdgeBufferizedContainer m_audio_buffer;
     QAudioFormat m_format;

@@ -26,8 +26,10 @@ public:
 
 private slots:
     void OnPlayStopClicked();
+    void EnablePlay();
 
 private:
+
     Ui::QEdgeMainWindow *ui;
     QEdgeAudioReproductor m_audio_reproductor;
     bool m_started;
