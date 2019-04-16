@@ -28,7 +28,7 @@ void QEdgeMainWindow::OnVideo( AVFrame *frame )
 
 void QEdgeMainWindow::OnAudio( AVFrame *frame )
 {
-    m_audio_reproductor.PlayAudio( frame );
+    Q_UNUSED( frame );
 }
 
 void QEdgeMainWindow::OnFailed( QString err_text )
@@ -38,7 +38,17 @@ void QEdgeMainWindow::OnFailed( QString err_text )
 
 void QEdgeMainWindow::OnFinished()
 {
-    //finished
+    m_started = false;
+}
+
+void QEdgeMainWindow::PlayerStarted()
+{
+
+}
+
+void QEdgeMainWindow::PlayerStopped()
+{
+
 }
 
 void QEdgeMainWindow::OnPlayStopClicked()
@@ -46,12 +56,10 @@ void QEdgeMainWindow::OnPlayStopClicked()
     if( !m_started )
     {
         m_player->Start( QString("C:/Users/Shemberko/Desktop/10stest.mp4") );
-        m_audio_reproductor.Start();
     }
     else
     {
         m_player->Stop();
-        m_audio_reproductor.Stop();
     }
 
     m_started = !m_started;

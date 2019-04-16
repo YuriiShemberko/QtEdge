@@ -35,8 +35,10 @@ QImage* AVFrameToQImage( const AVFrame *frame, const QSize &target_size )
 
     memcpy( img->scanLine(0), converted->data[0], output_slice );
 
+    av_frame_unref( converted );
     av_frame_free( &converted );
     av_free( buffer );
+
     sws_freeContext( img_convert_context );
 
     return img;

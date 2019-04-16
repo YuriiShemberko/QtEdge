@@ -6,7 +6,7 @@
 #include <QThread>
 #include <QCoreApplication>
 
-QEdgeBufferizedContainer::QEdgeBufferizedContainer() : QIODevice(), m_pos(0) {}
+QEdgeBufferizedContainer::QEdgeBufferizedContainer() : QIODevice(), m_pos(0), m_eof(false) {}
 QEdgeBufferizedContainer::~QEdgeBufferizedContainer() {}
 
 void QEdgeBufferizedContainer::Start()
@@ -16,6 +16,7 @@ void QEdgeBufferizedContainer::Start()
 
 void QEdgeBufferizedContainer::Stop()
 {
+    m_eof = false;
     m_buffer.clear();
     close();
     m_pos = 0;
@@ -24,16 +25,32 @@ void QEdgeBufferizedContainer::Stop()
 qint64 QEdgeBufferizedContainer::readData( char *data, qint64 len )
 {
     qint64 total = 0;
+
+    if( m_eof )
+    {
+        emit eof();
+        return 0;
+    }
+
+    if( m_pos + len >= m_buffer.size() ) //end
+    {
+        total = m_buffer.size() - m_pos;
+        memcpy( data, m_buffer.constData() + m_pos, total );
+        m_eof = true;
+        return total;
+    }
+
     if (!m_buffer.isEmpty())
     {
         while (len - total > 0)
         {
-            const qint64 chunk = qMin( (m_buffer.size() - m_pos), len - total );
+            const qint64 chunk = qMin( ( m_buffer.size() - m_pos ), len - total );
             memcpy( data + total, m_buffer.constData() + m_pos, chunk );
             m_pos = ( m_pos + chunk ) % m_buffer.size();
             total += chunk;
         }
     }
+
     return total;
 }
 
@@ -56,11 +73,41 @@ qint64 QEdgeBufferizedContainer::bytesAvailable() const
 QEdgeAudioReproductor::QEdgeAudioReproductor() :
     m_audio_output_initialized( false )
 {
+    connect( &m_audio_buffer, SIGNAL( eof() ), this, SLOT( onBufferEof() ) );
 }
 
 QEdgeAudioReproductor::~QEdgeAudioReproductor()
 {
-    m_audio_output->stop();
+
+}
+
+void QEdgeAudioReproductor::Init( IPlayer *player )
+{
+    player->ConnectToPlayer( this );
+}
+
+void QEdgeAudioReproductor::OnVideo( AVFrame *frame )
+{
+    Q_UNUSED( frame );
+}
+
+void QEdgeAudioReproductor::OnFailed( QString err_text )
+{
+    Q_UNUSED( err_text );
+}
+
+void QEdgeAudioReproductor::OnFinished()
+{
+}
+
+void QEdgeAudioReproductor::PlayerStarted()
+{
+    Start();
+}
+
+void QEdgeAudioReproductor::PlayerStopped()
+{
+    Stop();
 }
 
 void QEdgeAudioReproductor::Start()
@@ -82,7 +129,7 @@ void QEdgeAudioReproductor::Stop()
     m_audio_output_initialized = false;
 }
 
-void QEdgeAudioReproductor::PlayAudio( AVFrame *audio_frame )
+void QEdgeAudioReproductor::OnAudio( AVFrame *audio_frame )
 {
     int sample_size_bytes = av_get_bytes_per_sample( (AVSampleFormat)audio_frame->format );
     m_audio_buffer.writeData( (char*)audio_frame->data[0], sample_size_bytes * audio_frame->nb_samples );
@@ -96,22 +143,42 @@ void QEdgeAudioReproductor::PlayAudio( AVFrame *audio_frame )
         m_format.setSampleType( QAudioFormat::Float );
         m_format.setCodec("audio/pcm");
 
-        QCoreApplication::postEvent( this, new QStartEvent() );
+        QCoreApplication::postEvent( this, new QAudioOutputEvent( true ) );
 
         m_audio_output_initialized = true;
     }
+
+    av_frame_unref( audio_frame );
+    av_frame_free( &audio_frame );
 }
 
 bool QEdgeAudioReproductor::event( QEvent* ev )
 {
-    if( ev->type() == QStartEvent::s_start_event_type )
+    if( ev->type() == QAudioOutputEvent::s_audio_output_event_type )
     {
-        m_audio_output.reset( new QAudioOutput( QAudioDeviceInfo::defaultOutputDevice(), m_format, this ) );
-        m_audio_output->start( &m_audio_buffer );
-        m_audio_output->setVolume(1);
+        QAudioOutputEvent* audio_ev = static_cast<QAudioOutputEvent*>( ev );
+
+        if( audio_ev->IsStart() )
+        {
+            m_audio_output.release();
+            m_audio_output.reset( new QAudioOutput( QAudioDeviceInfo::defaultOutputDevice(), m_format, this ) );
+            m_audio_output->start( &m_audio_buffer );
+            m_audio_output->setVolume(1);
+        }
+
+        else
+        {
+            Stop();
+        }
+
         return true;
     }
 
     return QObject::event( ev );
+}
+
+void QEdgeAudioReproductor::onBufferEof()
+{
+    QCoreApplication::postEvent( this, new QAudioOutputEvent( false ) );
 }
 

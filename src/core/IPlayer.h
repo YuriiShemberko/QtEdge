@@ -17,6 +17,8 @@ public:
         virtual void OnAudio( AVFrame* frame ) = 0;
         virtual void OnFailed( QString err_text ) = 0;
         virtual void OnFinished() = 0;
+        virtual void PlayerStarted() = 0;
+        virtual void PlayerStopped() = 0;
     };
 
     virtual void ConnectToPlayer( IPlayerClient* client ) = 0;
@@ -76,6 +78,9 @@ public:
     {
         Q_UNUSED( frame );
     }
+
+    virtual void PlayerStarted() override {}
+    virtual void PlayerStopped() override {}
 
     virtual void OnFailed( QString err_text ) override
     {

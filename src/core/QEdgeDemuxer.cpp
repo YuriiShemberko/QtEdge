@@ -35,6 +35,10 @@ bool QEdgeDemuxer::Start( QString url )
 void QEdgeDemuxer::Interrupt()
 {
     m_running = false;
+    if( m_thread.get() )
+    {
+        m_thread->join();
+    }
     m_thread.release();
 }
 
@@ -45,6 +49,8 @@ void QEdgeDemuxer::OnFailed( QString err_text )
 
 void QEdgeDemuxer::OnFinished()
 {
+    m_running = false;
+    m_thread.release();
     m_subscriber->OnDemuxerFinished();
 }
 
@@ -136,9 +142,11 @@ void QEdgeDemuxer::DemuxInThread( void *ctx )
         else
         {
             av_packet_unref( packet );
+            av_packet_free( &packet );
         }
     }
 
     avformat_close_input( &format_context );
+    avformat_free_context( format_context );
     host->OnFinished();
 }

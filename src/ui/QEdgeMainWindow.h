@@ -23,15 +23,19 @@ public:
     virtual void OnAudio( AVFrame *frame ) override;
     virtual void OnFailed( QString err_text ) override;
     virtual void OnFinished() override;
+    virtual void PlayerStarted() override;
+    virtual void PlayerStopped() override;
 
 private slots:
     void OnPlayStopClicked();
     void EnablePlay();
 
+signals:
+    void PlayStopClicked( bool play );
+
 private:
 
     Ui::QEdgeMainWindow *ui;
-    QEdgeAudioReproductor m_audio_reproductor;
     bool m_started;
     IPlayer* m_player;
 };

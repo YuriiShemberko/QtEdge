@@ -23,10 +23,12 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 #entrypoint
-SOURCES += src/main.cpp
+SOURCES += src/main.cpp \
+    src/core/QEdgeDecoderBase.cpp
 #core
 
-HEADERS += src/core/IPlayer.h
+HEADERS += src/core/IPlayer.h \
+    src/core/QEdgeDecoderBase.h
 
 HEADERS += src/core/QEdgeUtils.h
 SOURCES += src/core/QEdgeUtils.cpp

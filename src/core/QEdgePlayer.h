@@ -17,6 +17,7 @@ public:
     virtual void Start( QString file_name ) override;
     virtual void Stop() override;
     virtual void Seek( int msec ) override;
+    virtual void OnPlayFinished() override;
 
     //IMediaControllerSubscriber overrides
     virtual void OnFailed( QString err_text ) override;

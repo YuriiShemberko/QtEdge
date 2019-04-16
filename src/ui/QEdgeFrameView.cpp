@@ -14,6 +14,8 @@ QEdgeFrameView::QEdgeFrameView( QWidget *parent ) :
 
 QEdgeFrameView::~QEdgeFrameView()
 {
+    av_frame_unref( m_current_frame );
+    av_frame_free( &m_current_frame );
     delete ui;
 }
 
@@ -21,10 +23,12 @@ void QEdgeFrameView::OnNewFrame( AVFrame *frame )
 {
     {
         std::lock_guard<std::mutex> m_frame_guard( m_frame_mtx );
+        av_frame_unref( m_current_frame );
         av_frame_free( &m_current_frame );
         m_current_frame = frame;
         Q_UNUSED( m_frame_guard );
     }
+
     QCoreApplication::removePostedEvents( this, QUpdatePreviewEvent::EventType );
     QCoreApplication::postEvent( this, new QUpdatePreviewEvent() );
 }

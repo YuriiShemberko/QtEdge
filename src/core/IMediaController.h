@@ -14,6 +14,7 @@ public:
         virtual void OnFailed( QString err_text ) = 0;
         virtual void OnNewVideoFrame( AVFrame* frame ) = 0;
         virtual void OnNewAudioFrame( AVFrame* frame ) = 0;
+        virtual void OnPlayFinished() = 0;
     };
 
     virtual void ConnectToController( IMediaControllerSubscriber* subscriber ) = 0;
@@ -39,6 +40,8 @@ public:
     {
         Q_UNUSED( frame );
     }
+
+    virtual void OnPlayFinished() override {}
 
     static CNullMediaControllerSubscriber* Instance()
     {

@@ -3,7 +3,9 @@
 #include <time.h>
 
 QEdgeMediaController::QEdgeMediaController() :
-    m_subscriber( CNullMediaControllerSubscriber::Instance() )
+    m_subscriber( CNullMediaControllerSubscriber::Instance() ),
+    m_audio_finished( false ),
+    m_video_finished( false )
 {}
 
 void QEdgeMediaController::ConnectToController( IMediaController::IMediaControllerSubscriber *subscriber )
@@ -13,6 +15,9 @@ void QEdgeMediaController::ConnectToController( IMediaController::IMediaControll
 
 void QEdgeMediaController::Start( QString file_name )
 {
+    m_audio_finished = false;
+    m_video_finished = false;
+
     m_demuxer.Init( this );
 
     if( !m_demuxer.Start( file_name ) )
@@ -25,8 +30,8 @@ void QEdgeMediaController::Start( QString file_name )
 void QEdgeMediaController::Stop()
 {
     m_demuxer.Interrupt();
-    m_audio_decoder.StopDecode();
-    m_video_decoder.StopDecode();
+    m_audio_decoder.StopDecode( true );
+    m_video_decoder.StopDecode( true );
 }
 
 void QEdgeMediaController::Seek( int msec )
@@ -37,8 +42,20 @@ void QEdgeMediaController::Seek( int msec )
 
 void QEdgeMediaController::OnDecoderFinished( IDecoder *sender )
 {
-    Q_UNUSED( sender );
-    //TODO
+    if( sender == &m_audio_decoder )
+    {
+        m_audio_finished = true;
+    }
+
+    if( sender == &m_video_decoder )
+    {
+        m_video_finished = true;
+    }
+
+    if( m_video_finished && m_audio_finished )
+    {
+        m_subscriber->OnPlayFinished();
+    }
 }
 
 void QEdgeMediaController::OnDecoderFailed( IDecoder *sender, QString err_text )
@@ -91,7 +108,8 @@ void QEdgeMediaController::OnDemuxerFailed( QString err_text )
 
 void QEdgeMediaController::OnDemuxerFinished()
 {
-
+    m_video_decoder.StopDecode( false );
+    m_audio_decoder.StopDecode( false );
 }
 
 void QEdgeMediaController::InitStream( AVStream *video_stream, AVStream *audio_stream )
@@ -103,12 +121,12 @@ void QEdgeMediaController::InitStream( AVStream *video_stream, AVStream *audio_s
 
 void QEdgeMediaController::OnAudioPacket( AVPacket *packet )
 {
-    m_audio_decoder.OnNewAudioPacket( packet );
+    m_audio_decoder.OnNewPacket( packet );
 }
 
 void QEdgeMediaController::OnVideoPacket( AVPacket *packet )
 {
-    m_video_decoder.OnNewVideoPacket( packet );
+    m_video_decoder.OnNewPacket( packet );
 }
 
 void QEdgeMediaController::QEdgeSynchronizer::Start( AVRational audio_time_base, AVRational video_time_base )
@@ -129,9 +147,9 @@ double QEdgeMediaController::QEdgeSynchronizer::SyncVideo( AVFrame *frame )
 {
     std::lock_guard<std::mutex> sync_guard( m_sync_mtx );
 
-    return this->ComputeVideoDelay( frame );
-
     Q_UNUSED( sync_guard );
+
+    return this->ComputeVideoDelay( frame );
 }
 
 void QEdgeMediaController::QEdgeSynchronizer::SyncAudio( AVFrame *frame )

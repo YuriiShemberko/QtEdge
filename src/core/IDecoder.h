@@ -26,7 +26,8 @@ public:
     };
 
     virtual void Init( AVStream* stream, IDecoderSubscriber* subscriber ) = 0;
-    virtual void StopDecode() = 0;
+    virtual void StopDecode( bool interrupt ) = 0;
+    virtual void OnNewPacket( AVPacket* packet ) = 0;
 };
 
 class CNullDecoder : public IDecoder
@@ -38,7 +39,15 @@ public:
         Q_UNUSED( stream );
     }
 
-    virtual void StopDecode() override {}
+    virtual void StopDecode( bool interrupt ) override
+    {
+        Q_UNUSED( interrupt );
+    }
+
+    virtual void OnNewPacket( AVPacket* packet )
+    {
+        Q_UNUSED( packet );
+    }
 
     static CNullDecoder* Instance()
     {
@@ -46,7 +55,7 @@ public:
         return &null_decoder;
     }
 
-private:
+
     CNullDecoder() {}
 };
 
@@ -80,69 +89,6 @@ private:
     CNullDecoderSubscriber() {}
 };
 
-class IAudioDecoder : public IDecoder
-{
-public:
-    virtual void OnNewAudioPacket( AVPacket* audio_packet ) = 0;
-};
-
-class IVideoDecoder : public IDecoder
-{
-public:
-    virtual void OnNewVideoPacket( AVPacket* video_packet ) = 0;
-};
-
-class CNullAudioDecoder : public IAudioDecoder
-{
-public:
-    virtual void Init( AVStream* stream, IDecoderSubscriber* subscriber ) override
-    {
-        Q_UNUSED( subscriber );
-        Q_UNUSED( stream );
-    }
-
-    virtual void StopDecode() override {}
-
-    virtual void OnNewAudioPacket( AVPacket* audio_packet ) override
-    {
-        Q_UNUSED( audio_packet );
-    }
-
-    static CNullAudioDecoder* Instance()
-    {
-        static CNullAudioDecoder null_audio_decoder;
-        return &null_audio_decoder;
-    }
-
-private:
-    CNullAudioDecoder() {}
-};
-
-class CNullVideoDecoder : public IVideoDecoder
-{
-public:
-    virtual void Init( AVStream* stream, IDecoderSubscriber* subscriber ) override
-    {
-        Q_UNUSED( subscriber );
-        Q_UNUSED( stream );
-    }
-
-    virtual void StopDecode() override {}
-
-    virtual void OnNewVideoPacket( AVPacket* video_packet ) override
-    {
-        Q_UNUSED( video_packet );
-    }
-
-    static CNullVideoDecoder* Instance()
-    {
-        static CNullVideoDecoder null_video_decoder;
-        return &null_video_decoder;
-    }
-
-private:
-    CNullVideoDecoder() {}
-};
 
 
 #endif // IDECODER_H

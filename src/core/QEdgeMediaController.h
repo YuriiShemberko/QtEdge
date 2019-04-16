@@ -68,6 +68,9 @@ private:
     QEdgeAudioDecoder m_audio_decoder;
     QEdgeVideoDecoder m_video_decoder;
     QEdgeDemuxer m_demuxer;
+
+    bool m_audio_finished;
+    bool m_video_finished;
 };
 
 #endif //QEDGEMEDIACONTROLLER_H
