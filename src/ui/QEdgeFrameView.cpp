@@ -5,6 +5,7 @@
 
 QEdgeFrameView::QEdgeFrameView( QWidget *parent ) :
     QWidget( parent ),
+    m_frame_shown( false ),
     ui( new Ui::QEdgeFrameView ),
     m_current_frame( nullptr ),
     m_image( nullptr )
@@ -22,11 +23,10 @@ QEdgeFrameView::~QEdgeFrameView()
 void QEdgeFrameView::OnNewFrame( AVFrame *frame )
 {
     {
-        std::lock_guard<std::mutex> m_frame_guard( m_frame_mtx );
-        av_frame_unref( m_current_frame );
-        av_frame_free( &m_current_frame );
+        std::lock_guard<std::mutex> frame_guard( m_frame_mtx );
         m_current_frame = frame;
-        Q_UNUSED( m_frame_guard );
+        m_frame_shown = false;
+        Q_UNUSED( frame_guard );
     }
 
     QCoreApplication::removePostedEvents( this, QUpdatePreviewEvent::EventType );
@@ -51,6 +51,8 @@ void QEdgeFrameView::paintEvent( QPaintEvent *ev )
         {
             std::lock_guard<std::mutex> frame_guard( m_frame_mtx );
             ResetImage( utils::AVFrameToQImage( m_current_frame, this->size() ) );
+            m_frame_shown = true;
+            //syncvideo
             Q_UNUSED( frame_guard );
         }
         painter.drawImage( QPoint( 0, 0 ), ( *m_image ) );

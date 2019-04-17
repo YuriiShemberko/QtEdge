@@ -15,7 +15,7 @@ class QEdgeMainWindow : public QMainWindow, public IPlayer::IPlayerClient
     Q_OBJECT
 
 public:
-    explicit QEdgeMainWindow(QWidget *parent = 0);
+    explicit QEdgeMainWindow(QWidget *parent = nullptr);
     ~QEdgeMainWindow();
 
     virtual void Init( IPlayer* player ) override;
@@ -37,7 +37,7 @@ private:
 
     Ui::QEdgeMainWindow *ui;
     bool m_started;
-    IPlayer* m_player;
+    std::unique_ptr<IPlayer> m_player;
 };
 
 #endif // QEDGEMAINWINDOW_H

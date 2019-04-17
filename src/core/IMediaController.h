@@ -19,6 +19,10 @@ public:
 
     virtual void ConnectToController( IMediaControllerSubscriber* subscriber ) = 0;
     virtual void Start( QString file_name ) = 0;
+    virtual void AudioFrameProcessed( AVFrame* frame ) = 0;
+    virtual void VideoFrameProcessed( AVFrame* frame ) = 0;
+    virtual void AudioPresented( long long audio_data_remains ) = 0;
+    virtual void VideoPresented() = 0;
     virtual void Stop() = 0;
     virtual void Seek( int msec ) = 0;
 };
@@ -66,10 +70,29 @@ public:
         Q_UNUSED( file_name );
     }
     virtual void Stop() override {}
+
     virtual void Seek( int msec ) override
     {
         Q_UNUSED( msec );
     }
+
+    virtual void AudioFrameProcessed( AVFrame* frame ) override
+    {
+        Q_UNUSED( frame );
+    }
+
+    virtual void VideoFrameProcessed( AVFrame* frame ) override
+    {
+        Q_UNUSED( frame );
+    }
+
+    virtual void VideoPresented() override {}
+
+    virtual void AudioPresented( long long audio_data_remains ) override
+    {
+        Q_UNUSED( audio_data_remains );
+    }
+
     static CNullMediaController* Instance()
     {
         static CNullMediaController null_media_controller;

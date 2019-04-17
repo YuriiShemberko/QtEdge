@@ -27,6 +27,28 @@ void QEdgeMediaController::Start( QString file_name )
     }
 }
 
+void QEdgeMediaController::VideoFrameProcessed( AVFrame* frame )
+{
+    av_frame_unref( frame );
+    av_frame_free( &frame );
+}
+
+void QEdgeMediaController::AudioFrameProcessed( AVFrame* frame )
+{
+    av_frame_unref( frame );
+    av_frame_free( &frame );
+}
+
+void QEdgeMediaController::VideoPresented()
+{
+    m_synchronizer.DelayVideo();
+}
+
+void QEdgeMediaController::AudioPresented( long long audio_data_remains )
+{
+    m_synchronizer.UpdateAudioRemains( audio_data_remains );
+}
+
 void QEdgeMediaController::Stop()
 {
     m_demuxer.Interrupt();
@@ -76,13 +98,12 @@ void QEdgeMediaController::OnDecoderFailed( IDecoder *sender, QString err_text )
 
 void QEdgeMediaController::PreprocessVideo( AVFrame* frame )
 {
-    double delay = m_synchronizer.SyncVideo( frame );
-    std::this_thread::sleep_for( std::chrono::milliseconds( (int)(delay * 1000) ) );
+    m_synchronizer.PreprocessVideo( frame );
 }
 
 void QEdgeMediaController::PreprocessAudio( AVFrame *frame )
 {
-    m_synchronizer.SyncAudio( frame );
+    m_synchronizer.PreprocessAudio( frame );
 }
 
 void QEdgeMediaController::OnNewFrame( IDecoder *sender, AVFrame *frame )
@@ -129,30 +150,7 @@ void QEdgeMediaController::OnVideoPacket( AVPacket *packet )
     m_video_decoder.OnNewPacket( packet );
 }
 
-void QEdgeMediaController::QEdgeSynchronizer::Start( AVRational audio_time_base, AVRational video_time_base )
-{
-    m_audio_time_base = audio_time_base;
-    m_video_time_base = video_time_base;
-
-    m_sync_timer.restart();
-
-    m_frame_timer = 0;
-    m_video_clock = (double)m_sync_timer.elapsed() / 1000.0;
-    m_audio_clock = (double)m_sync_timer.elapsed() / 1000.0;
-    m_frame_last_delay = 0;
-    m_frame_last_pts = 0;
-}
-
-double QEdgeMediaController::QEdgeSynchronizer::SyncVideo( AVFrame *frame )
-{
-    std::lock_guard<std::mutex> sync_guard( m_sync_mtx );
-
-    Q_UNUSED( sync_guard );
-
-    return this->ComputeVideoDelay( frame );
-}
-
-void QEdgeMediaController::QEdgeSynchronizer::SyncAudio( AVFrame *frame )
+void QEdgeMediaController::QEdgeSynchronizer::PreprocessAudio( AVFrame *frame )
 {
     std::lock_guard<std::mutex> sync_guard( m_sync_mtx );
 
@@ -168,7 +166,12 @@ void QEdgeMediaController::QEdgeSynchronizer::SyncAudio( AVFrame *frame )
     Q_UNUSED( sync_guard );
 }
 
-double QEdgeMediaController::QEdgeSynchronizer::ComputeVideoDelay( AVFrame* frame )
+void QEdgeMediaController::QEdgeSynchronizer::UpdateAudioRemains( long long data_remains )
+{
+    m_audio_remains = data_remains;
+}
+
+void QEdgeMediaController::QEdgeSynchronizer::PreprocessVideo( AVFrame *frame )
 {
     double curr_pts = frame->pts;
 
@@ -195,11 +198,33 @@ double QEdgeMediaController::QEdgeSynchronizer::ComputeVideoDelay( AVFrame* fram
     }
 
     double frame_delay = av_q2d( m_video_time_base );
-
     frame_delay += frame->repeat_pict * (frame_delay * 0.5);
     m_video_clock += frame_delay;
 
-    double delay = curr_pts - m_frame_last_pts;
+    m_current_frame_pts = curr_pts;
+}
+
+void QEdgeMediaController::QEdgeSynchronizer::Start( AVRational audio_time_base, AVRational video_time_base )
+{
+    m_audio_time_base = audio_time_base;
+    m_video_time_base = video_time_base;
+
+    m_sync_timer.restart();
+
+    m_video_clock = (double)m_sync_timer.elapsed() / 1000.0;
+    m_audio_clock = (double)m_sync_timer.elapsed() / 1000.0;
+    m_frame_timer = 0;
+    m_frame_last_delay = 0;
+    m_frame_last_pts = 0;
+    m_current_frame_pts = 0;
+
+    m_audio_remains = 0;
+}
+
+void QEdgeMediaController::QEdgeSynchronizer::DelayVideo()
+{
+    double curr_pts = m_current_frame_pts;
+    double delay = - m_frame_last_pts;
 
     if( delay <= 0.0 || delay >= 1.0 )
     {
@@ -238,5 +263,5 @@ double QEdgeMediaController::QEdgeSynchronizer::ComputeVideoDelay( AVFrame* fram
         actual_delay = 0.010;
     }
 
-    return actual_delay;
+    std::this_thread::sleep_for( std::chrono::milliseconds( int(actual_delay * 1000 + 0.5) ) );
 }

@@ -19,6 +19,10 @@ public:
     QEdgeMediaController();
     virtual void ConnectToController( IMediaControllerSubscriber *subscriber ) override;
     virtual void Start( QString file_name ) override;
+    virtual void VideoFrameProcessed( AVFrame* frame ) override;
+    virtual void AudioFrameProcessed( AVFrame* frame ) override;
+    virtual void VideoPresented() override;
+    virtual void AudioPresented( long long audio_data_remains ) override;
     virtual void Stop() override;
     virtual void Seek( int msec ) override;
 
@@ -39,16 +43,17 @@ private:
     public:
         void Start( AVRational audio_time_base, AVRational video_time_base );
 
-        double SyncVideo( AVFrame* frame );
-        void SyncAudio( AVFrame* frame );
+        void PreprocessVideo( AVFrame* frame );
+        void PreprocessAudio( AVFrame* frame );
+        void DelayVideo();
+        void UpdateAudioRemains( long long data_remains );
 
     private:
-        double ComputeVideoDelay( AVFrame* frame );
-
         double m_video_clock;
         double m_audio_clock;
 
         double m_frame_timer;
+        double m_current_frame_pts;
         double m_frame_last_pts;
         double m_frame_last_delay;
 
@@ -58,6 +63,8 @@ private:
 
         AVRational m_audio_time_base;
         AVRational m_video_time_base;
+
+        long long m_audio_remains;
 
     } m_synchronizer;
 

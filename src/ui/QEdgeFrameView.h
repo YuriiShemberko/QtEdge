@@ -34,6 +34,7 @@ private:
         QUpdatePreviewEvent() : QEvent( EventType ) {}
     };
 
+    bool m_frame_shown;
     Ui::QEdgeFrameView *ui;
     AVFrame* m_current_frame;
     QImage* m_image;

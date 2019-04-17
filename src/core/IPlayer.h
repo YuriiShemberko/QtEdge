@@ -21,7 +21,11 @@ public:
         virtual void PlayerStopped() = 0;
     };
 
-    virtual void ConnectToPlayer( IPlayerClient* client ) = 0;
+    virtual void VideoProcessed( AVFrame* frame ) = 0;
+    virtual void AudioProcessed( AVFrame* frame ) = 0;
+    virtual void VideoPresented() = 0;
+    virtual void AudioPresented( long long audio_data_remains ) = 0;
+    virtual void InitPlayer( IPlayerClient* video_receiver, IPlayerClient* audio_receiver ) = 0;
     virtual void DisconnectFromPlayer( IPlayerClient* client ) = 0;
     virtual void Start( QString file_name ) = 0;
     virtual void Stop() = 0;
@@ -31,14 +35,32 @@ public:
 class CNullPlayer : public IPlayer
 {
 public:
-    virtual void ConnectToPlayer( IPlayerClient* client )
+    virtual void InitPlayer( IPlayerClient* video_receiver, IPlayerClient* audio_receiver ) override
+    {
+        Q_UNUSED( video_receiver );
+        Q_UNUSED( audio_receiver );
+    }
+
+    virtual void DisconnectFromPlayer( IPlayerClient* client ) override
     {
         Q_UNUSED( client );
     }
 
-    virtual void DisconnectFromPlayer( IPlayerClient* client )
+    virtual void VideoProcessed( AVFrame* frame ) override
     {
-        Q_UNUSED( client );
+        Q_UNUSED( frame );
+    }
+
+    virtual void AudioProcessed( AVFrame* frame ) override
+    {
+        Q_UNUSED( frame );
+    }
+
+    virtual void VideoPresented() override {}
+
+    virtual void AudioPresented( long long audio_data_remains ) override
+    {
+        Q_UNUSED( total_audio_played );
     }
 
     virtual void Start( QString file_name ) override

@@ -75,6 +75,7 @@ private:
     std::unique_ptr<QAudioOutput> m_audio_output;
     QEdgeBufferizedContainer m_audio_buffer;
     QAudioFormat m_format;
+    std::unique_ptr<IPlayer> m_player;
 
     bool m_audio_output_initialized;
 };

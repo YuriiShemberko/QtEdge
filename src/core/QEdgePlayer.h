@@ -12,12 +12,14 @@ public:
     ~QEdgePlayer();
 
     //IPlayer overrides
-    virtual void ConnectToPlayer( IPlayerClient* client ) override;
+    virtual void InitPlayer( IPlayerClient* video_recevier, IPlayerClient* audio_receiver ) override;
     virtual void DisconnectFromPlayer( IPlayerClient* client ) override;
     virtual void Start( QString file_name ) override;
     virtual void Stop() override;
     virtual void Seek( int msec ) override;
     virtual void OnPlayFinished() override;
+    virtual void AudioProcessed( AVFrame* frame ) override;
+    virtual void VideoProcessed( AVFrame* frame ) override;
 
     //IMediaControllerSubscriber overrides
     virtual void OnFailed( QString err_text ) override;
@@ -26,7 +28,8 @@ public:
 
 private:
     QEdgeMediaController m_media_controller;
-    std::list<IPlayerClient*> m_clients;
+    std::unique_ptr<IPlayerClient> m_video_receiver;
+    std::unique_ptr<IPlayerClient> m_audio_receiver;
 };
 
 #endif // QEDGEPLAYER_H

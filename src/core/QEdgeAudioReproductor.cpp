@@ -56,6 +56,8 @@ qint64 QEdgeBufferizedContainer::readData( char *data, qint64 len )
 
 qint64 QEdgeBufferizedContainer::writeData( const char *data, qint64 len )
 {
+    qDebug() << m_buffer.size() - m_pos;
+
     int pos = m_buffer.size();
 
     m_buffer.resize( m_buffer.size() + len );
@@ -71,6 +73,7 @@ qint64 QEdgeBufferizedContainer::bytesAvailable() const
 }
 
 QEdgeAudioReproductor::QEdgeAudioReproductor() :
+    m_player( CNullPlayer::Instance() ),
     m_audio_output_initialized( false )
 {
     connect( &m_audio_buffer, SIGNAL( eof() ), this, SLOT( onBufferEof() ) );
@@ -83,7 +86,7 @@ QEdgeAudioReproductor::~QEdgeAudioReproductor()
 
 void QEdgeAudioReproductor::Init( IPlayer *player )
 {
-    player->ConnectToPlayer( this );
+    m_player.reset( player );
 }
 
 void QEdgeAudioReproductor::OnVideo( AVFrame *frame )
@@ -148,8 +151,7 @@ void QEdgeAudioReproductor::OnAudio( AVFrame *audio_frame )
         m_audio_output_initialized = true;
     }
 
-    av_frame_unref( audio_frame );
-    av_frame_free( &audio_frame );
+    m_player->AudioProcessed( audio_frame );
 }
 
 bool QEdgeAudioReproductor::event( QEvent* ev )
