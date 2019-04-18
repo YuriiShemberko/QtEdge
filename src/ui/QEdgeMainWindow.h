@@ -30,6 +30,9 @@ private slots:
     void OnPlayStopClicked();
     void EnablePlay();
 
+    void OnFrameShown();
+    void OnFrameProcessed( AVFrame* frame );
+
 signals:
     void PlayStopClicked( bool play );
 

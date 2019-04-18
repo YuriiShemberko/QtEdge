@@ -3,9 +3,9 @@
 QEdgeDecoderBase::QEdgeDecoderBase() :
     QObject(nullptr),
     m_subscriber( CNullDecoderSubscriber::Instance() ),
+    m_codec_context( nullptr ),
     m_running( false ),
-    m_demuxer_finished( false ),
-    m_codec_context( nullptr )
+    m_demuxer_finished( false )
 {
 
 }

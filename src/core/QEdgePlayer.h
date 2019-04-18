@@ -20,6 +20,8 @@ public:
     virtual void OnPlayFinished() override;
     virtual void AudioProcessed( AVFrame* frame ) override;
     virtual void VideoProcessed( AVFrame* frame ) override;
+    virtual void AudioPresented( long long audio_data_remains ) override;
+    virtual void VideoPresented() override;
 
     //IMediaControllerSubscriber overrides
     virtual void OnFailed( QString err_text ) override;

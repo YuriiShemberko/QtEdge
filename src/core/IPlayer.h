@@ -60,7 +60,7 @@ public:
 
     virtual void AudioPresented( long long audio_data_remains ) override
     {
-        Q_UNUSED( total_audio_played );
+        Q_UNUSED( audio_data_remains );
     }
 
     virtual void Start( QString file_name ) override

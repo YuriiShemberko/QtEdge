@@ -37,6 +37,7 @@ qint64 QEdgeBufferizedContainer::readData( char *data, qint64 len )
         total = m_buffer.size() - m_pos;
         memcpy( data, m_buffer.constData() + m_pos, total );
         m_eof = true;
+        emit bufferRead( 0 );
         return total;
     }
 
@@ -51,13 +52,12 @@ qint64 QEdgeBufferizedContainer::readData( char *data, qint64 len )
         }
     }
 
+    emit bufferRead( m_buffer.size() - m_pos );
     return total;
 }
 
 qint64 QEdgeBufferizedContainer::writeData( const char *data, qint64 len )
 {
-    qDebug() << m_buffer.size() - m_pos;
-
     int pos = m_buffer.size();
 
     m_buffer.resize( m_buffer.size() + len );
@@ -69,14 +69,15 @@ qint64 QEdgeBufferizedContainer::writeData( const char *data, qint64 len )
 
 qint64 QEdgeBufferizedContainer::bytesAvailable() const
 {
-    return m_buffer.size() + QIODevice::bytesAvailable();
+    return m_buffer.size() - m_pos;
 }
 
 QEdgeAudioReproductor::QEdgeAudioReproductor() :
     m_player( CNullPlayer::Instance() ),
     m_audio_output_initialized( false )
 {
-    connect( &m_audio_buffer, SIGNAL( eof() ), this, SLOT( onBufferEof() ) );
+    connect( &m_audio_buffer, SIGNAL( eof() ), this, SLOT( OnBufferEof() ) );
+    //connect( &m_audio_buffer, SIGNAL( bufferRead(qint64) ) , this, SLOT( OnBufferRead(qint64) ) );
 }
 
 QEdgeAudioReproductor::~QEdgeAudioReproductor()
@@ -166,6 +167,8 @@ bool QEdgeAudioReproductor::event( QEvent* ev )
             m_audio_output.reset( new QAudioOutput( QAudioDeviceInfo::defaultOutputDevice(), m_format, this ) );
             m_audio_output->start( &m_audio_buffer );
             m_audio_output->setVolume(1);
+            m_audio_output->setNotifyInterval( 100 );
+            connect( m_audio_output.get(), SIGNAL(notify()), this, SLOT(OnBufferRead()));
         }
 
         else
@@ -179,8 +182,13 @@ bool QEdgeAudioReproductor::event( QEvent* ev )
     return QObject::event( ev );
 }
 
-void QEdgeAudioReproductor::onBufferEof()
+void QEdgeAudioReproductor::OnBufferEof()
 {
     QCoreApplication::postEvent( this, new QAudioOutputEvent( false ) );
+}
+
+void QEdgeAudioReproductor::OnBufferRead(   )
+{
+    m_player->AudioPresented( m_audio_buffer.bytesAvailable() );
 }
 

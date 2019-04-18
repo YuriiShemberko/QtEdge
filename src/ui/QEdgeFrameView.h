@@ -23,6 +23,10 @@ public:
     virtual bool event( QEvent* event );
     virtual void paintEvent( QPaintEvent* ) override;
 
+signals:
+    void frameShown();
+    void frameProcessed( AVFrame* frame );
+
 private:
 
     void ResetImage( QImage* image );

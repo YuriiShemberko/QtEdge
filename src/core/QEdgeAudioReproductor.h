@@ -26,6 +26,7 @@ public:
 
 signals:
     void eof();
+    void bufferRead( qint64 remains );
 
 private:
     qint64 m_pos;
@@ -57,7 +58,8 @@ protected:
     virtual bool event( QEvent* ev ) override;
 
 private slots:
-    void onBufferEof();
+    void OnBufferEof();
+    void OnBufferRead(   );
 
 private:
 

@@ -63,6 +63,16 @@ void QEdgePlayer::VideoProcessed( AVFrame *frame )
     m_media_controller.VideoFrameProcessed( frame );
 }
 
+void QEdgePlayer::AudioPresented( long long audio_data_remains )
+{
+    m_media_controller.AudioPresented( audio_data_remains );
+}
+
+void QEdgePlayer::VideoPresented()
+{
+    m_media_controller.VideoPresented();
+}
+
 void QEdgePlayer::OnFailed( QString err_text )
 {
     m_video_receiver->OnFailed( err_text );

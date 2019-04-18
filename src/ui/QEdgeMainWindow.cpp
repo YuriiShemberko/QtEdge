@@ -13,6 +13,8 @@ QEdgeMainWindow::QEdgeMainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     connect( ui->btn_play_stop, SIGNAL( clicked(bool) ), this, SLOT( OnPlayStopClicked() ) );
+    connect( ui->frame_area, SIGNAL( frameShown() ), this, SLOT( OnFrameShown() ) );
+    connect( ui->frame_area, SIGNAL( frameProcessed(AVFrame*) ), this, SLOT( OnFrameProcessed(AVFrame*) ) );
 }
 
 void QEdgeMainWindow::Init( IPlayer* player )
@@ -54,7 +56,7 @@ void QEdgeMainWindow::OnPlayStopClicked()
 {
     if( !m_started )
     {
-        m_player->Start( QString("C:/Users/Shemberko/Desktop/test.mp4") );
+        m_player->Start( QString("C:/Users/Shemberko/Desktop/10stest.mp4") );
     }
     else
     {
@@ -70,6 +72,16 @@ void QEdgeMainWindow::OnPlayStopClicked()
 void QEdgeMainWindow::EnablePlay()
 {
     ui->btn_play_stop->setEnabled( true );
+}
+
+void QEdgeMainWindow::OnFrameShown()
+{
+    m_player->VideoPresented();
+}
+
+void QEdgeMainWindow::OnFrameProcessed( AVFrame *frame )
+{
+    m_player->VideoProcessed( frame );
 }
 
 QEdgeMainWindow::~QEdgeMainWindow()

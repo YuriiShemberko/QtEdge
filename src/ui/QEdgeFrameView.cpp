@@ -24,8 +24,13 @@ void QEdgeFrameView::OnNewFrame( AVFrame *frame )
 {
     {
         std::lock_guard<std::mutex> frame_guard( m_frame_mtx );
+        if( m_current_frame )
+        {
+            emit frameProcessed( m_current_frame );
+        }
         m_current_frame = frame;
         m_frame_shown = false;
+
         Q_UNUSED( frame_guard );
     }
 
@@ -51,12 +56,16 @@ void QEdgeFrameView::paintEvent( QPaintEvent *ev )
         {
             std::lock_guard<std::mutex> frame_guard( m_frame_mtx );
             ResetImage( utils::AVFrameToQImage( m_current_frame, this->size() ) );
-            m_frame_shown = true;
-            //syncvideo
             Q_UNUSED( frame_guard );
         }
         painter.drawImage( QPoint( 0, 0 ), ( *m_image ) );
         painter.end();
+
+        if( !m_frame_shown )
+        {
+            m_frame_shown = true;
+            emit frameShown();
+        }
     }
 
     else

@@ -41,14 +41,24 @@ private:
     class QEdgeSynchronizer
     {
     public:
-        void Start( AVRational audio_time_base, AVRational video_time_base );
+        void Start( AVStream* audio_stream, AVStream* video_stream );
 
         void PreprocessVideo( AVFrame* frame );
         void PreprocessAudio( AVFrame* frame );
         void DelayVideo();
         void UpdateAudioRemains( long long data_remains );
+        double GetAudioClock();
 
     private:
+        struct SStreamParams
+        {
+            AVRational time_base;
+            int sample_rate;
+            int format;
+            int channels; //for audio
+
+        } m_audio_params, m_video_params;
+
         double m_video_clock;
         double m_audio_clock;
 
@@ -57,12 +67,11 @@ private:
         double m_frame_last_pts;
         double m_frame_last_delay;
 
+        double m_next_delay;
+
         QElapsedTimer m_sync_timer;
 
         std::mutex m_sync_mtx;
-
-        AVRational m_audio_time_base;
-        AVRational m_video_time_base;
 
         long long m_audio_remains;
 
@@ -75,6 +84,9 @@ private:
     QEdgeAudioDecoder m_audio_decoder;
     QEdgeVideoDecoder m_video_decoder;
     QEdgeDemuxer m_demuxer;
+
+    std::unique_ptr<AVCodecContext> m_video_ctx;
+    std::unique_ptr<AVCodecContext> m_audio_ctx;
 
     bool m_audio_finished;
     bool m_video_finished;
