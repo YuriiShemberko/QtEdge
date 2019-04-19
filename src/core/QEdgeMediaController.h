@@ -41,7 +41,8 @@ private:
     class QEdgeSynchronizer
     {
     public:
-        void Start( AVStream* audio_stream, AVStream* video_stream );
+        void Init( AVStream* audio_stream, AVStream* video_stream );
+        void StartSync();
 
         void PreprocessVideo( AVFrame* frame );
         void PreprocessAudio( AVFrame* frame );
@@ -90,6 +91,8 @@ private:
 
     bool m_audio_finished;
     bool m_video_finished;
+
+    bool m_presentation_started;
 };
 
 #endif //QEDGEMEDIACONTROLLER_H

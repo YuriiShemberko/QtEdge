@@ -19,6 +19,7 @@ void QEdgeMediaController::Start( QString file_name )
 {
     m_audio_finished = false;
     m_video_finished = false;
+    m_presentation_started = false;
 
     m_demuxer.Init( this );
 
@@ -43,6 +44,12 @@ void QEdgeMediaController::AudioFrameProcessed( AVFrame* frame )
 
 void QEdgeMediaController::VideoPresented()
 {
+    if( !m_presentation_started )
+    {
+        m_presentation_started = true;
+        m_synchronizer.StartSync();
+    }
+
     m_synchronizer.DelayVideo();
 }
 
@@ -137,7 +144,7 @@ void QEdgeMediaController::OnDemuxerFinished()
 
 void QEdgeMediaController::InitStream( AVStream *video_stream, AVStream *audio_stream )
 {
-    m_synchronizer.Start( audio_stream, video_stream );
+    m_synchronizer.Init( audio_stream, video_stream );
     m_audio_decoder.Init( audio_stream, this );
     m_video_decoder.Init( video_stream, this );
 }
@@ -227,19 +234,8 @@ void QEdgeMediaController::QEdgeSynchronizer::PreprocessVideo( AVFrame *frame )
     std::this_thread::sleep_for( std::chrono::microseconds( (long long)(m_next_delay * 1000000 + 0.5) ) );
 }
 
-void QEdgeMediaController::QEdgeSynchronizer::Start( AVStream* audio_stream, AVStream* video_stream )
+void QEdgeMediaController::QEdgeSynchronizer::Init( AVStream* audio_stream, AVStream* video_stream )
 {
-    m_sync_timer.restart();
-
-    m_video_clock = (double)m_sync_timer.elapsed() / 1000.0;
-    m_audio_clock = (double)m_sync_timer.elapsed() / 1000.0;
-    m_frame_timer = 0;
-    m_frame_last_delay = 0;
-    m_frame_last_pts = 0;
-    m_current_frame_pts = 0;
-    m_next_delay = 0.03;
-    m_audio_remains = 0;
-
     m_audio_params.time_base = audio_stream->time_base;
     m_video_params.time_base = video_stream->time_base;
 
@@ -250,6 +246,20 @@ void QEdgeMediaController::QEdgeSynchronizer::Start( AVStream* audio_stream, AVS
     m_video_params.sample_rate = video_stream->codecpar->sample_rate;
 
     m_audio_params.channels = audio_stream->codecpar->channels;
+
+    m_video_clock = (double)m_sync_timer.elapsed() / 1000.0;
+    m_audio_clock = (double)m_sync_timer.elapsed() / 1000.0;
+    m_frame_timer = 0;
+    m_frame_last_delay = 0;
+    m_frame_last_pts = 0;
+    m_current_frame_pts = 0;
+    m_next_delay = 0.03;
+    m_audio_remains = 0;
+}
+
+void QEdgeMediaController::QEdgeSynchronizer::StartSync()
+{
+    m_sync_timer.restart();
 }
 
 void QEdgeMediaController::QEdgeSynchronizer::DelayVideo()

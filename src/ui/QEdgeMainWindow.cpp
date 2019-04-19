@@ -56,7 +56,7 @@ void QEdgeMainWindow::OnPlayStopClicked()
 {
     if( !m_started )
     {
-        m_player->Start( QString("C:/Users/Shemberko/Desktop/10stest.mp4") );
+        m_player->Start( QString("C:/Users/Shemberko/Desktop/test.mp4") );
     }
     else
     {
