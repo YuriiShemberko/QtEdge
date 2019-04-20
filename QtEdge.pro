@@ -24,11 +24,15 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 #entrypoint
 SOURCES += src/main.cpp \
-    src/core/QEdgeDecoderBase.cpp
+    src/core/QEdgeDecoderBase.cpp \
+    src/core/QEdgeSynchronizer.cpp
 #core
 
 HEADERS += src/core/IPlayer.h \
-    src/core/QEdgeDecoderBase.h
+    src/core/QEdgeDecoderBase.h \
+    src/core/ISynchronizer.h \
+    src/core/QEdgeSynchronizer.h \
+    src/core/Global.h
 
 HEADERS += src/core/QEdgeUtils.h
 SOURCES += src/core/QEdgeUtils.cpp

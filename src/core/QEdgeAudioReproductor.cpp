@@ -77,7 +77,6 @@ QEdgeAudioReproductor::QEdgeAudioReproductor() :
     m_audio_output_initialized( false )
 {
     connect( &m_audio_buffer, SIGNAL( eof() ), this, SLOT( OnBufferEof() ) );
-    //connect( &m_audio_buffer, SIGNAL( bufferRead(qint64) ) , this, SLOT( OnBufferRead(qint64) ) );
 }
 
 QEdgeAudioReproductor::~QEdgeAudioReproductor()
@@ -187,7 +186,7 @@ void QEdgeAudioReproductor::OnBufferEof()
     QCoreApplication::postEvent( this, new QAudioOutputEvent( false ) );
 }
 
-void QEdgeAudioReproductor::OnBufferRead(   )
+void QEdgeAudioReproductor::OnBufferRead()
 {
     m_player->AudioPresented( m_audio_buffer.bytesAvailable() );
 }

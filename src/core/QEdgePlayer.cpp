@@ -7,7 +7,11 @@ QEdgePlayer::QEdgePlayer() :
     m_media_controller.ConnectToController( this );
 }
 
-QEdgePlayer::~QEdgePlayer() {}
+QEdgePlayer::~QEdgePlayer()
+{
+    m_audio_receiver.release();
+    m_video_receiver.release();
+}
 
 void QEdgePlayer::InitPlayer( IPlayerClient *video_receiver, IPlayerClient* audio_receiver )
 {

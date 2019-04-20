@@ -1,16 +1,16 @@
-#ifndef QEdgeDecoderBase_H
-#define QEdgeDecoderBase_H
-
-#include <QEvent>
-#include <QCoreApplication>
+#ifndef QEDGEDECODERBASE_H
+#define QEDGEDECODERBASE_H
 
 #include <memory>
 #include <thread>
 #include <queue>
 #include <mutex>
-#include <core/IDecoder.h>
 
-class AVCodecContext;
+#include <QEvent>
+#include <QCoreApplication>
+
+#include <core/IDecoder.h>
+#include <core/QEdgeUtils.h>
 
 class QEdgeDecoderBase : public QObject, public IDecoder
 {
@@ -27,7 +27,7 @@ protected:
     AVPacket* PopPacket();
     void PushPacket( AVPacket* packet );
 
-    bool IsQueueEmpty() { return m_packet_queue.empty(); }
+    bool IsQueueEmpty() { return m_packet_queue.IsEmpty(); }
     void FreeQueue();
     void OnNewFrame( AVFrame* frame );
     void OnFailed( QString err_text );
@@ -51,12 +51,11 @@ protected:
     std::unique_ptr<IDecoderSubscriber> m_subscriber;
     std::unique_ptr<AVCodecContext> m_codec_context;
 
-    std::mutex m_queue_mutex;
-    std::queue<AVPacket*> m_packet_queue;
+    utils::QEdgeMultithreadQueue<AVPacket*> m_packet_queue;
     std::unique_ptr<std::thread> m_decode_thread;
 
-    bool m_running;
+    volatile bool m_running;
     bool m_demuxer_finished;
 };
 
-#endif // QEdgeDecoderBase_H
+#endif // QEDGEDECODERBASE_H

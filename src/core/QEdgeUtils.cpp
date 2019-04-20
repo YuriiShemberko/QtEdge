@@ -1,5 +1,6 @@
 #include <core/QEdgeUtils.h>
 #include <QDebug>
+#include <thread>
 
 namespace utils {
 
@@ -44,5 +45,9 @@ QImage* AVFrameToQImage( const AVFrame *frame, const QSize &target_size )
     return img;
 }
 
+void QEdgeSleep( int msec )
+{
+    std::this_thread::sleep_for( std::chrono::milliseconds( msec) );
+}
 
 }

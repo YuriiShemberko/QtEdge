@@ -79,22 +79,16 @@ void QEdgeDecoderBase::StopDecode( bool interrupt )
 
 void QEdgeDecoderBase::FreeQueue()
 {
-    std::lock_guard<std::mutex> queue_guard( m_queue_mutex );
-
-    while( !m_packet_queue.empty() )
+    while( !m_packet_queue.IsEmpty() )
     {
-        AVPacket* packet = m_packet_queue.front();
+        AVPacket* packet = m_packet_queue.Pop();
 
         if( packet )
         {
             av_packet_unref( packet );
             av_packet_free( &packet );
         }
-
-        m_packet_queue.pop();
     }
-
-    Q_UNUSED( queue_guard );
 }
 
 void QEdgeDecoderBase::OnNewPacket( AVPacket *packet )
@@ -116,10 +110,7 @@ void QEdgeDecoderBase::OnNewPacket( AVPacket *packet )
 
 void QEdgeDecoderBase::PushPacket( AVPacket* packet )
 {
-    std::lock_guard<std::mutex> queue_guard( m_queue_mutex );
-    m_packet_queue.push( packet );
-
-    Q_UNUSED( queue_guard ); //to avoid compiler warning
+    m_packet_queue.Push( packet );
 }
 
 void QEdgeDecoderBase::OnNewFrame( AVFrame *frame )
@@ -160,21 +151,12 @@ void QEdgeDecoderBase::FreeCodecContext()
 
 AVPacket *QEdgeDecoderBase::PopPacket()
 {
-    std::lock_guard<std::mutex> queue_guard( m_queue_mutex );
-
-    if( m_packet_queue.empty() )
+    if( m_packet_queue.IsEmpty() )
     {
         return nullptr;
     }
 
-    else
-    {
-        AVPacket* packet = m_packet_queue.front();
-        m_packet_queue.pop();
-        return packet;
-    }
-
-    Q_UNUSED( queue_guard ); //avoiding compiler warning
+    return m_packet_queue.Pop();
 }
 
 void QEdgeDecoderBase::DecodeThread( void *ctx )
@@ -185,12 +167,6 @@ void QEdgeDecoderBase::DecodeThread( void *ctx )
     {
         AVPacket* packet = host->PopPacket();
 
-        if( host->IsQueueEmpty() && host->m_demuxer_finished )
-        {
-            host->OnThreadFinished();
-            return;
-        }
-
         if( !packet )
         {
             continue; //wait for next packet
@@ -199,5 +175,11 @@ void QEdgeDecoderBase::DecodeThread( void *ctx )
         host->Decode( packet );
 
         av_packet_unref( packet );
+
+        if( host->IsQueueEmpty() && host->m_demuxer_finished )
+        {
+            host->OnThreadFinished();
+            return;
+        }
     }
 }

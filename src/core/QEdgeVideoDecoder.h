@@ -3,8 +3,6 @@
 
 #include <core/QEdgeDecoderBase.h>
 
-class AVCodecContext;
-
 class QEdgeVideoDecoder : public QEdgeDecoderBase
 {
 public:

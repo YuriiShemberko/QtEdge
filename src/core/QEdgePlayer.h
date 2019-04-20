@@ -1,7 +1,6 @@
 #ifndef QEDGEPLAYER_H
 #define QEDGEPLAYER_H
 
-#include <list>
 #include <core/IPlayer.h>
 #include <core/QEdgeMediaController.h>
 

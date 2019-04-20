@@ -5,7 +5,6 @@
 #include <thread>
 
 #include <core/IDemuxer.h>
-#include <core/IDecoder.h>
 
 class AVStream;
 

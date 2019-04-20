@@ -1,22 +1,24 @@
 #ifndef QEDGEMEDIACONTROLLER_H
 #define QEDGEMEDIACONTROLLER_H
 
-#include <core/IMediaController.h>
+#include <QElapsedTimer>
+
 #include <memory>
 
+#include <core/IMediaController.h>
 #include <core/QEdgeAudioDecoder.h>
 #include <core/QEdgeVideoDecoder.h>
 #include <core/QEdgeDemuxer.h>
+#include <core/QEdgeSynchronizer.h>
 
-#include <QElapsedTimer>
-
-#define AV_SYNC_THRESHOLD 0.01
-#define AV_NOSYNC_THRESHOLD 10.0
-
-class QEdgeMediaController : public IMediaController, public IDecoder::IDecoderSubscriber, public IDemuxer::IDemuxerSubscriber
+class QEdgeMediaController : public IMediaController,
+                             public IDecoder::IDecoderSubscriber,
+                             public IDemuxer::IDemuxerSubscriber
 {
 public:
     QEdgeMediaController();
+
+    //IMediaController overrides
     virtual void ConnectToController( IMediaControllerSubscriber *subscriber ) override;
     virtual void Start( QString file_name ) override;
     virtual void VideoFrameProcessed( AVFrame* frame ) override;
@@ -26,6 +28,7 @@ public:
     virtual void Stop() override;
     virtual void Seek( int msec ) override;
 
+    //IDecoderSubscriber overrides
     virtual void OnDecoderFailed( IDecoder* sender, QString err_text ) override;
     virtual void OnNewFrame( IDecoder* sender, AVFrame* frame ) override;
     virtual void OnDecoderFinished( IDecoder* sender ) override;
@@ -38,48 +41,9 @@ public:
     virtual void OnVideoPacket( AVPacket* packet ) override;
 
 private:
-    class QEdgeSynchronizer
-    {
-    public:
-        void Init( AVStream* audio_stream, AVStream* video_stream );
-        void StartSync();
-
-        void PreprocessVideo( AVFrame* frame );
-        void PreprocessAudio( AVFrame* frame );
-        void DelayVideo();
-        void UpdateAudioRemains( long long data_remains );
-        double GetAudioClock();
 
     private:
-        struct SStreamParams
-        {
-            AVRational time_base;
-            int sample_rate;
-            int format;
-            int channels; //for audio
-
-        } m_audio_params, m_video_params;
-
-        double m_video_clock;
-        double m_audio_clock;
-
-        double m_frame_timer;
-        double m_current_frame_pts;
-        double m_frame_last_pts;
-        double m_frame_last_delay;
-
-        double m_next_delay;
-
-        QElapsedTimer m_sync_timer;
-
-        std::mutex m_sync_mtx;
-
-        long long m_audio_remains;
-
-    } m_synchronizer;
-
-    void PreprocessVideo( AVFrame* frame );
-    void PreprocessAudio( AVFrame* frame );
+    QEdgeSynchronizer m_synchronizer;
 
     IMediaControllerSubscriber* m_subscriber;
     QEdgeAudioDecoder m_audio_decoder;

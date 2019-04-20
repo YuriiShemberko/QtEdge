@@ -3,7 +3,7 @@
 
 #include <QString>
 
-#include <core/IDecoder.h>
+#include <core/Global.h>
 
 class IDemuxer
 {
