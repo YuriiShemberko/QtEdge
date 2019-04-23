@@ -60,10 +60,12 @@ void QEdgeMediaController::Stop()
     m_video_decoder.StopDecode( true );
 }
 
-void QEdgeMediaController::Seek( int msec )
+void QEdgeMediaController::Seek( int64_t msec )
 {
     Q_UNUSED( msec );
-    //TODO
+    m_video_decoder.StopDecode( true );
+    m_audio_decoder.StopDecode( true );
+    m_demuxer.Seek( msec );
 }
 
 void QEdgeMediaController::OnDecoderFinished( IDecoder *sender )
@@ -128,6 +130,8 @@ void QEdgeMediaController::InitStream( AVStream *video_stream, AVStream *audio_s
     m_synchronizer.SessionStarted( video_stream, audio_stream );
     m_audio_decoder.Init( audio_stream, this );
     m_video_decoder.Init( video_stream, this );
+
+    m_subscriber->DurationSpecified( utils::TimebaseUnitsToMsecs( video_stream->time_base, video_stream->duration) );
 }
 
 void QEdgeMediaController::OnAudioPacket( AVPacket *packet )

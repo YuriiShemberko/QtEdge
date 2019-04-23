@@ -65,20 +65,27 @@
           <property name="verticalSpacing">
            <number>5</number>
           </property>
-          <item row="2" column="0">
+          <item row="2" column="2">
+           <widget class="QLabel" name="label_time_total">
+            <property name="text">
+             <string>00:00</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignRight|Qt::AlignTop|Qt::AlignTrailing</set>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
            <widget class="QSlider" name="time_slider">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
            </widget>
           </item>
-          <item row="2" column="1">
+          <item row="2" column="0">
            <widget class="QLabel" name="label_time">
             <property name="text">
              <string>00:00</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTop|Qt::AlignTrailing</set>
             </property>
            </widget>
           </item>

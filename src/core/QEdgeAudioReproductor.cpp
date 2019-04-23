@@ -113,6 +113,16 @@ void QEdgeAudioReproductor::PlayerStopped()
     Stop();
 }
 
+void QEdgeAudioReproductor::DurationSpecified( int64_t msecs )
+{
+    Q_UNUSED( msecs );
+}
+
+void QEdgeAudioReproductor::CurrentTimestampChanged( int64_t msecs )
+{
+    Q_UNUSED( msecs );
+}
+
 void QEdgeAudioReproductor::Start()
 {
     m_audio_buffer.Start();

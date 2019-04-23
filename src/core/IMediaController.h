@@ -15,16 +15,18 @@ public:
         virtual void OnNewVideoFrame( AVFrame* frame ) = 0;
         virtual void OnNewAudioFrame( AVFrame* frame ) = 0;
         virtual void OnPlayFinished() = 0;
+        virtual void DurationSpecified( int64_t msecs ) = 0;
+        virtual void CurrentTimestampChanged( int64_t msecs ) = 0;
     };
 
     virtual void ConnectToController( IMediaControllerSubscriber* subscriber ) = 0;
     virtual void Start( QString file_name ) = 0;
     virtual void AudioFrameProcessed( AVFrame* frame ) = 0;
     virtual void VideoFrameProcessed( AVFrame* frame ) = 0;
-    virtual void AudioPresented( long long audio_data_remains ) = 0;
+    virtual void AudioPresented( int64_t audio_data_remains ) = 0;
     virtual void VideoPresented() = 0;
     virtual void Stop() = 0;
-    virtual void Seek( int msec ) = 0;
+    virtual void Seek( int64_t msec ) = 0;
 };
 
 class CNullMediaControllerSubscriber : public IMediaController::IMediaControllerSubscriber
@@ -53,6 +55,16 @@ public:
         return &null_subscriber;
     }
 
+    virtual void DurationSpecified( int64_t msecs ) override
+    {
+        Q_UNUSED( msecs );
+    }
+
+    virtual void CurrentTimestampChanged( int64_t msecs ) override
+    {
+        Q_UNUSED( msecs );
+    }
+
 private:
     CNullMediaControllerSubscriber() {}
 };
@@ -71,7 +83,7 @@ public:
     }
     virtual void Stop() override {}
 
-    virtual void Seek( int msec ) override
+    virtual void Seek( int64_t msec ) override
     {
         Q_UNUSED( msec );
     }
@@ -88,7 +100,7 @@ public:
 
     virtual void VideoPresented() override {}
 
-    virtual void AudioPresented( long long audio_data_remains ) override
+    virtual void AudioPresented( int64_t audio_data_remains ) override
     {
         Q_UNUSED( audio_data_remains );
     }

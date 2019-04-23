@@ -1,4 +1,5 @@
 #include <core/QEdgeDemuxer.h>
+#include <core/QEdgeUtils.h>
 
 extern "C"{
 #include <libavcodec/avcodec.h>
@@ -16,7 +17,7 @@ void QEdgeDemuxer::Init( IDemuxerSubscriber* subscriber )
     m_subscriber = subscriber;
 }
 
-bool QEdgeDemuxer::Start( QString url )
+bool QEdgeDemuxer::Start( QString url, int seek_ms )
 {
     if( url.isEmpty() || m_running )
     {
@@ -26,6 +27,8 @@ bool QEdgeDemuxer::Start( QString url )
 
     m_url = url;
     m_running = true;
+
+    m_seek_ms = seek_ms;
 
     m_thread.reset( new std::thread( QEdgeDemuxer::DemuxInThread, this ) );
 
@@ -40,6 +43,12 @@ void QEdgeDemuxer::Interrupt()
         m_thread->join();
     }
     m_thread.release();
+}
+
+void QEdgeDemuxer::Seek( int msec )
+{
+    Interrupt();
+    Start( m_url, msec );
 }
 
 void QEdgeDemuxer::OnFailed( QString err_text )
@@ -122,6 +131,22 @@ void QEdgeDemuxer::DemuxInThread( void *ctx )
     }
 
     host->m_subscriber->InitStream( video_stream, audio_stream );
+
+    if( host->m_seek_ms )
+    {
+        int res = 0;
+
+        int64_t frame_idx = utils::MsecsToTimebaseUnits( video_stream->time_base, host->m_seek_ms );
+
+        res = avformat_seek_file( format_context, video_stream_index, 0, frame_idx, frame_idx, AVSEEK_FLAG_FRAME );
+
+        if( res < 0 )
+        {
+            QString err_text = "ffmpeg: unable to seek video";
+            host->OnFailed( err_text );
+            return;
+        }
+    }
 
     int res = 0;
     while( res >= 0 )

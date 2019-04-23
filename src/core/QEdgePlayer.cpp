@@ -46,8 +46,10 @@ void QEdgePlayer::Stop()
     m_audio_receiver->PlayerStopped();
 }
 
-void QEdgePlayer::Seek( int msec )
+void QEdgePlayer::Seek( int64_t msec )
 {
+    m_audio_receiver->PlayerStopped();
+    m_audio_receiver->PlayerStarted();
     m_media_controller.Seek( msec );
 }
 
@@ -75,6 +77,18 @@ void QEdgePlayer::AudioPresented( long long audio_data_remains )
 void QEdgePlayer::VideoPresented()
 {
     m_media_controller.VideoPresented();
+}
+
+void QEdgePlayer::DurationSpecified( int64_t msecs )
+{
+    m_audio_receiver->DurationSpecified( msecs );
+    m_video_receiver->DurationSpecified( msecs );
+}
+
+void QEdgePlayer::CurrentTimestampChanged( int64_t msecs )
+{
+    m_audio_receiver->CurrentTimestampChanged( msecs );
+    m_video_receiver->CurrentTimestampChanged( msecs );
 }
 
 void QEdgePlayer::OnFailed( QString err_text )

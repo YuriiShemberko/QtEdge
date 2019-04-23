@@ -26,7 +26,7 @@ public:
     virtual void VideoPresented() override;
     virtual void AudioPresented( long long audio_data_remains ) override;
     virtual void Stop() override;
-    virtual void Seek( int msec ) override;
+    virtual void Seek( int64_t msec ) override;
 
     //IDecoderSubscriber overrides
     virtual void OnDecoderFailed( IDecoder* sender, QString err_text ) override;

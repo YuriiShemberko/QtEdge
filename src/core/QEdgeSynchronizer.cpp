@@ -19,7 +19,6 @@ void QEdgeSynchronizer::SessionStarted( const AVStream *video_stream, const AVSt
     m_video_params.sample_rate = video_stream->codecpar->sample_rate;
     m_audio_params.channels = audio_stream->codecpar->channels;
 
-    m_sync_timer_started = false;
     m_video_rate = 0;
     m_audio_rate = 0;
     m_next_delay = AV_NOSYNC_DELAY;
@@ -28,6 +27,8 @@ void QEdgeSynchronizer::SessionStarted( const AVStream *video_stream, const AVSt
     m_frame_last_pts = 0;
     m_current_frame_pts = 0;
     m_audio_remains = 0;
+    m_video_started = false;
+    m_audio_started = false;
 }
 
 void QEdgeSynchronizer::ProcessVideo( AVFrame *frame )
@@ -39,6 +40,13 @@ void QEdgeSynchronizer::ProcessVideo( AVFrame *frame )
 void QEdgeSynchronizer::OnAudioPresented( long long buffer_remains )
 {
     m_audio_remains = buffer_remains;
+    if( !m_audio_started )
+    {
+        std::lock_guard<std::mutex> audio_started_lock( m_audio_wait_mtx );
+        m_audio_started = true;
+        m_audio_started_condition.notify_one();
+        Q_UNUSED( audio_started_lock );
+    }
 }
 
 void QEdgeSynchronizer::OnVideoPresented()
@@ -48,7 +56,15 @@ void QEdgeSynchronizer::OnVideoPresented()
 
 void QEdgeSynchronizer::PushNextFrame( AVFrame* frame )
 {
+    if( !m_audio_started )
+    {
+        std::unique_lock<std::mutex> audio_started_lock( m_audio_wait_mtx );
+        m_audio_started_condition.wait( audio_started_lock );
+        audio_started_lock.unlock();
+    }
+
     m_receiver->OnNewVideoFrame( frame );
+    m_receiver->CurrentTimestampChanged( m_current_frame_pts * 1000 );
     utils::QEdgeSleep( GetMsDelay( m_next_delay ) );
 }
 
@@ -82,9 +98,9 @@ double QEdgeSynchronizer::GetAudioRate()
 
 void QEdgeSynchronizer::SyncVideo()
 {
-    if( !m_sync_timer_started )
+    if( !m_video_started )
     {
-        m_sync_timer_started = true;
+        m_video_started = true;
         m_sync_timer.restart();
     }
 

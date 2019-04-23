@@ -50,4 +50,18 @@ void QEdgeSleep( int msec )
     std::this_thread::sleep_for( std::chrono::milliseconds( msec) );
 }
 
+int64_t MsecsToTimebaseUnits( AVRational time_base, int64_t msecs )
+{
+    int64_t frame_idx = av_rescale( msecs, time_base.den, time_base.num );
+    return frame_idx / 1000;
+}
+
+int64_t TimebaseUnitsToMsecs( AVRational time_base, int64_t timebase_units )
+{
+    double time_base_d =  av_q2d( time_base );
+    double duration = (double)timebase_units * time_base_d * 1000.0;
+
+    return duration + 0.5;
+}
+
 }

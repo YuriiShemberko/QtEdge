@@ -19,6 +19,8 @@ public:
         virtual void OnFinished() = 0;
         virtual void PlayerStarted() = 0;
         virtual void PlayerStopped() = 0;
+        virtual void DurationSpecified( int64_t msecs ) = 0;
+        virtual void CurrentTimestampChanged( int64_t msecs ) = 0;
     };
 
     virtual void VideoProcessed( AVFrame* frame ) = 0;
@@ -29,7 +31,7 @@ public:
     virtual void DisconnectFromPlayer( IPlayerClient* client ) = 0;
     virtual void Start( QString file_name ) = 0;
     virtual void Stop() = 0;
-    virtual void Seek( int msec ) = 0;
+    virtual void Seek( int64_t msec ) = 0;
 };
 
 class CNullPlayer : public IPlayer
@@ -70,7 +72,7 @@ public:
 
     virtual void Stop() override {}
 
-    virtual void Seek( int msec ) override
+    virtual void Seek( int64_t msec ) override
     {
         Q_UNUSED( msec );
     }
@@ -99,6 +101,16 @@ public:
     virtual void OnAudio( AVFrame* frame ) override
     {
         Q_UNUSED( frame );
+    }
+
+    virtual void DurationSpecified( int64_t msecs ) override
+    {
+        Q_UNUSED( msecs );
+    }
+
+    virtual void CurrentTimestampChanged( int64_t msecs ) override
+    {
+        Q_UNUSED( msecs );
     }
 
     virtual void PlayerStarted() override {}

@@ -63,7 +63,11 @@ private:
 };
 
 QImage* AVFrameToQImage( const AVFrame *frame, const QSize &target_size );
+
 void QEdgeSleep( int msecs );
+
+int64_t MsecsToTimebaseUnits( AVRational time_base, int64_t msecs );
+int64_t TimebaseUnitsToMsecs( AVRational time_base, int64_t timebase_units );
 
 }
 

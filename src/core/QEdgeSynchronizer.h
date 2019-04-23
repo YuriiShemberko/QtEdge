@@ -9,6 +9,7 @@
 
 #include <memory>
 #include <mutex>
+#include <condition_variable>
 
 #include <core/Global.h>
 #include <core/ISynchronizer.h>
@@ -57,9 +58,13 @@ private:
     double m_frame_last_delay;
     long long m_audio_remains;
     double m_next_delay;
-    bool m_sync_timer_started;
+    bool m_video_started;
 
     QElapsedTimer m_sync_timer;
+
+    volatile bool m_audio_started;
+    std::condition_variable m_audio_started_condition;
+    std::mutex m_audio_wait_mtx;
 
     std::unique_ptr<IMediaController::IMediaControllerSubscriber> m_receiver;
 };

@@ -15,12 +15,14 @@ public:
     virtual void DisconnectFromPlayer( IPlayerClient* client ) override;
     virtual void Start( QString file_name ) override;
     virtual void Stop() override;
-    virtual void Seek( int msec ) override;
+    virtual void Seek( int64_t msec ) override;
     virtual void OnPlayFinished() override;
     virtual void AudioProcessed( AVFrame* frame ) override;
     virtual void VideoProcessed( AVFrame* frame ) override;
     virtual void AudioPresented( long long audio_data_remains ) override;
     virtual void VideoPresented() override;
+    virtual void DurationSpecified( int64_t msecs ) override;
+    virtual void CurrentTimestampChanged( int64_t msecs ) override;
 
     //IMediaControllerSubscriber overrides
     virtual void OnFailed( QString err_text ) override;

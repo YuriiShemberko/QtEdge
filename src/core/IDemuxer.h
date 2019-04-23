@@ -19,8 +19,9 @@ public:
     };
 
     virtual void Init( IDemuxerSubscriber* subscriber ) = 0;
-    virtual bool Start( QString url ) = 0;
+    virtual bool Start( QString url, int seek_pos = 0 ) = 0;
     virtual void Interrupt() = 0;
+    virtual void Seek( int msec ) = 0;
 };
 
 class CNullDemuxerSubscriber : public IDemuxer::IDemuxerSubscriber
@@ -67,13 +68,19 @@ public:
         Q_UNUSED( subscriber );
     }
 
-    virtual bool Start( QString url ) override
+    virtual bool Start( QString url, int seek_pos = 0 ) override
     {
         Q_UNUSED( url );
+        Q_UNUSED( seek_pos );
         return false;
     }
 
     virtual void Interrupt() override { }
+
+    virtual void Seek( int msec ) override
+    {
+        Q_UNUSED( msec );
+    }
 
     static CNullDemuxer* Instance()
     {

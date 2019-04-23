@@ -49,6 +49,8 @@ public:
     virtual void OnFinished() override;
     virtual void PlayerStarted() override;
     virtual void PlayerStopped() override;
+    virtual void DurationSpecified( int64_t msecs ) override;
+    virtual void CurrentTimestampChanged( int64_t msecs ) override;
 
 public slots:
     void Start();
