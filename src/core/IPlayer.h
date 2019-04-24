@@ -32,6 +32,8 @@ public:
     virtual void Start( QString file_name ) = 0;
     virtual void Stop() = 0;
     virtual void Seek( int64_t msec ) = 0;
+    virtual void Pause() = 0;
+    virtual void ContinuePlay() = 0;
 };
 
 class CNullPlayer : public IPlayer
@@ -57,6 +59,10 @@ public:
     {
         Q_UNUSED( frame );
     }
+
+    virtual void Pause() override { }
+
+    virtual void ContinuePlay() override { }
 
     virtual void VideoPresented() override {}
 

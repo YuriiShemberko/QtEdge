@@ -14,6 +14,8 @@ int main(int argc, char *argv[])
     audio_reproductor.Init( &player );
     main_window.Init( &player );
 
+    QObject::connect( &main_window, SIGNAL(setVolume(int) ), &audio_reproductor, SLOT(OnSetVolume(int) ) );
+
     main_window.show();
 
     return a.exec();

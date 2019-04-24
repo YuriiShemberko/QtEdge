@@ -2,6 +2,7 @@
 #define QEDGEMAINWINDOW_H
 
 #include <QMainWindow>
+#include <QPushButton>
 #include <QString>
 #include <core/IPlayer.h>
 #include <core/QEdgeAudioReproductor.h>
@@ -35,16 +36,15 @@ private slots:
     void OnPlayStopClicked();
     void OnSliderPressed();
     void OnSliderReleased();
-    void EnablePlay();
-
+    void DelayNextClick();
+    void EnableClickedBtn();
     void OnSeekForward();
     void OnSeekBackward();
-
     void OnFrameShown();
     void OnFrameProcessed( AVFrame* frame );
-
 signals:
     void PlayStopClicked( bool play );
+    void setVolume( int value );
 
 private:
     void RequestSeek( int seek_value );
@@ -53,8 +53,11 @@ private:
     bool m_started;
     std::unique_ptr<IPlayer> m_player;
     int m_video_duration;
-
+    bool m_paused;
     volatile bool m_seeking;
+    QString m_file_name;
+
+    QPushButton* m_clicked_btn;
 };
 
 #endif // QEDGEMAINWINDOW_H

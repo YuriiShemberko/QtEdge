@@ -2,7 +2,9 @@
 
 QEdgePlayer::QEdgePlayer() :
     m_video_receiver( CNullPlayerClient::Instance() ),
-    m_audio_receiver( CNullPlayerClient::Instance() )
+    m_audio_receiver( CNullPlayerClient::Instance() ),
+    m_last_timestamp( 0 ),
+    m_paused( false )
 {
     m_media_controller.ConnectToController( this );
 }
@@ -34,6 +36,7 @@ void QEdgePlayer::DisconnectFromPlayer( IPlayerClient *client )
 
 void QEdgePlayer::Start( QString file_name )
 {
+    m_file_name = file_name;
     m_media_controller.Start( file_name );
     m_video_receiver->PlayerStarted();
     m_audio_receiver->PlayerStarted();
@@ -51,6 +54,20 @@ void QEdgePlayer::Seek( int64_t msec )
     m_audio_receiver->PlayerStopped();
     m_audio_receiver->PlayerStarted();
     m_media_controller.Seek( msec );
+}
+
+void QEdgePlayer::Pause()
+{
+    m_paused = true;
+    Stop();
+}
+
+void QEdgePlayer::ContinuePlay()
+{
+    m_audio_receiver->PlayerStopped();
+    m_audio_receiver->PlayerStarted();
+    m_media_controller.Seek( m_last_timestamp );
+    m_paused = false;
 }
 
 void QEdgePlayer::OnPlayFinished()
@@ -87,9 +104,13 @@ void QEdgePlayer::DurationSpecified( int64_t msecs )
 
 void QEdgePlayer::CurrentTimestampChanged( int64_t msecs )
 {
-    m_audio_receiver->CurrentTimestampChanged( msecs );
-    m_video_receiver->CurrentTimestampChanged( msecs );
-}
+    if( !m_paused )
+    {
+        m_last_timestamp = msecs;
+        m_audio_receiver->CurrentTimestampChanged( msecs );
+        m_video_receiver->CurrentTimestampChanged( msecs );
+    }
+}    
 
 void QEdgePlayer::OnFailed( QString err_text )
 {

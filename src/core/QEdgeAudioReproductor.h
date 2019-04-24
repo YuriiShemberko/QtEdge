@@ -55,6 +55,7 @@ public:
 public slots:
     void Start();
     void Stop();
+    void OnSetVolume( int volume );
 
 protected:
     virtual bool event( QEvent* ev ) override;

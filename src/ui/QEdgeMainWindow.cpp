@@ -11,17 +11,25 @@ QEdgeMainWindow::QEdgeMainWindow(QWidget *parent) :
     m_started( false ),
     m_player( CNullPlayer::Instance() ),
     m_video_duration( 0 ),
-    m_seeking( false )
+    m_seeking( false ),
+    m_paused( false )
 {
     ui->setupUi(this);
 
     connect( ui->btn_play_stop, SIGNAL( clicked(bool) ), this, SLOT( OnPlayStopClicked() ) );
+    connect( ui->btn_play_stop, SIGNAL( clicked(bool) ), this, SLOT( DelayNextClick() ) );
+
+    connect( ui->btn_forward, SIGNAL( clicked(bool) ), this, SLOT( OnSeekForward() ) );
+    connect( ui->btn_forward, SIGNAL( clicked(bool) ), this, SLOT( DelayNextClick() ) );
+
+    connect( ui->btn_back, SIGNAL( clicked(bool) ), this, SLOT( OnSeekBackward() ) );
+    connect( ui->btn_back, SIGNAL( clicked(bool) ), this, SLOT( DelayNextClick() ) );
+
     connect( ui->frame_area, SIGNAL( frameShown() ), this, SLOT( OnFrameShown() ) );
     connect( ui->frame_area, SIGNAL( frameProcessed(AVFrame*) ), this, SLOT( OnFrameProcessed(AVFrame*) ) );
-    connect( ui->btn_forward, SIGNAL( clicked(bool) ), this, SLOT( OnSeekForward()) );
-    connect( ui->btn_back, SIGNAL( clicked(bool)), this, SLOT(OnSeekBackward()) );
     connect( ui->time_slider, SIGNAL( sliderReleased()), this, SLOT( OnSliderReleased() ) );
     connect( ui->time_slider, SIGNAL( sliderPressed()), this, SLOT( OnSliderPressed() ) );
+    connect( ui->volume_slider, SIGNAL( sliderMoved(int) ), this, SIGNAL( setVolume(int) ) );
 }
 
 void QEdgeMainWindow::Init( IPlayer* player )
@@ -47,6 +55,7 @@ void QEdgeMainWindow::OnFailed( QString err_text )
 void QEdgeMainWindow::OnFinished()
 {
     m_started = false;
+    m_paused = false;
 }
 
 void QEdgeMainWindow::PlayerStarted()
@@ -68,6 +77,21 @@ void QEdgeMainWindow::OnSliderReleased()
 {
     RequestSeek( ui->time_slider->value() );
     m_seeking = false;
+}
+
+void QEdgeMainWindow::DelayNextClick()
+{
+    if( sender() )
+    {
+        QPushButton* btn = qobject_cast<QPushButton*>( sender() );
+
+        if( btn )
+        {
+            m_clicked_btn = btn;
+            m_clicked_btn->setEnabled( false );
+            QTimer::singleShot( 600, Qt::PreciseTimer, this, SLOT( EnableClickedBtn() ) );
+        }
+    }
 }
 
 void QEdgeMainWindow::DurationSpecified( int64_t msecs )
@@ -116,24 +140,33 @@ void QEdgeMainWindow::OnSeekBackward()
 
 void QEdgeMainWindow::OnPlayStopClicked()
 {
-    if( !m_started )
+    //TMP!!!
+    static bool f = false;
+    if( !f )
     {
-        m_player->Start( QString("C:/Users/Shemberko/Desktop/testb.mp4") );
+        f = true;
+        m_file_name = QString("C:/Users/Shemberko/Desktop/testb.mp4");
+        m_player->Start( m_file_name );
+        m_started = true;
+        return;
+    }
+    //------------------
+
+    if( !m_paused )
+    {
+        m_player->Pause();
     }
     else
     {
-        m_player->Stop();
+        m_player->ContinuePlay();
     }
 
-    m_started = !m_started;
-
-    ui->btn_play_stop->setEnabled( false );
-    QTimer::singleShot( 300, Qt::PreciseTimer, this, SLOT( EnablePlay() ) );
+    m_paused = !m_paused;
 }
 
-void QEdgeMainWindow::EnablePlay()
+void QEdgeMainWindow::EnableClickedBtn()
 {
-    ui->btn_play_stop->setEnabled( true );
+    m_clicked_btn->setEnabled( true );
 }
 
 void QEdgeMainWindow::OnFrameShown()
@@ -148,5 +181,6 @@ void QEdgeMainWindow::OnFrameProcessed( AVFrame *frame )
 
 QEdgeMainWindow::~QEdgeMainWindow()
 {
+    m_player.release();
     delete ui;
 }

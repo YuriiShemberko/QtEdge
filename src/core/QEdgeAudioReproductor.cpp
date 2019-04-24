@@ -81,7 +81,8 @@ QEdgeAudioReproductor::QEdgeAudioReproductor() :
 
 QEdgeAudioReproductor::~QEdgeAudioReproductor()
 {
-
+    m_audio_output.release();
+    m_player.release();
 }
 
 void QEdgeAudioReproductor::Init( IPlayer *player )
@@ -140,6 +141,14 @@ void QEdgeAudioReproductor::Stop()
     m_audio_buffer.Stop();
 
     m_audio_output_initialized = false;
+}
+
+void QEdgeAudioReproductor::OnSetVolume( int volume )
+{
+    if( m_audio_output.get() )
+    {
+        m_audio_output->setVolume( volume / 100.0 );
+    }
 }
 
 void QEdgeAudioReproductor::OnAudio( AVFrame *audio_frame )

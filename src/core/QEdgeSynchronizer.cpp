@@ -64,7 +64,20 @@ void QEdgeSynchronizer::PushNextFrame( AVFrame* frame )
     }
 
     m_receiver->OnNewVideoFrame( frame );
-    m_receiver->CurrentTimestampChanged( m_current_frame_pts * 1000 );
+
+    int64_t pts = frame->pts;
+    if( pts == AV_NOPTS_VALUE )
+    {
+        pts = frame->pkt_dts;
+    }
+    pts = utils::TimebaseUnitsToMsecs( m_video_params.time_base, pts );
+
+    if( pts == AV_NOPTS_VALUE )
+    {
+        pts = m_current_frame_pts * 1000;
+    }
+
+    m_receiver->CurrentTimestampChanged( pts  );
     utils::QEdgeSleep( GetMsDelay( m_next_delay ) );
 }
 
