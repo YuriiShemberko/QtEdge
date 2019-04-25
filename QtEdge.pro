@@ -25,14 +25,18 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #entrypoint
 SOURCES += src/main.cpp \
     src/core/QEdgeDecoderBase.cpp \
-    src/core/QEdgeSynchronizer.cpp
+    src/core/QEdgeSynchronizer.cpp \
+    src/ui/QDropDownVolumeSlider.cpp \
+    src/ui/QEdgeButton.cpp
 #core
 
 HEADERS += src/core/IPlayer.h \
     src/core/QEdgeDecoderBase.h \
     src/core/ISynchronizer.h \
     src/core/QEdgeSynchronizer.h \
-    src/core/Global.h
+    src/core/Global.h \
+    src/ui/QDropDownVolumeSlider.h \
+    src/ui/QEdgeButton.h
 
 HEADERS += src/core/QEdgeUtils.h
 SOURCES += src/core/QEdgeUtils.cpp
@@ -64,7 +68,8 @@ SOURCES += src/core/QEdgeAudioReproductor.cpp
 
 HEADERS += src/ui/QEdgeFrameView.h
 SOURCES += src/ui/QEdgeFrameView.cpp
-FORMS += src/ui/QEdgeFrameView.ui
+FORMS += src/ui/QEdgeFrameView.ui \
+    src/ui/QDropDownVolumeSlider.ui
 
 HEADERS += src/ui/QEdgeMainWindow.h
 SOURCES += src/ui/QEdgeMainWindow.cpp
@@ -75,3 +80,6 @@ FORMS += src/ui/QEdgeMainWindow.ui
 INCLUDEPATH += $$PWD/src
 INCLUDEPATH += $$PWD/lib/ffmpeg/include
 LIBS += -L$$PWD/lib/ffmpeg/lib -lavutil -lavcodec -lswscale -lavformat
+
+RESOURCES += \
+    resources.qrc

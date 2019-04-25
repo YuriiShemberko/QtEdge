@@ -6,6 +6,7 @@
 #include <QString>
 #include <core/IPlayer.h>
 #include <core/QEdgeAudioReproductor.h>
+#include <ui/QEdgeButton.h>
 
 namespace Ui {
 class QEdgeMainWindow;

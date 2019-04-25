@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/img">
+        <file>resources/curtain.png</file>
+        <file>resources/play.png</file>
+        <file>resources/play_hover.png</file>
+    </qresource>
+</RCC>

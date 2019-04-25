@@ -19,17 +19,23 @@ QEdgeMainWindow::QEdgeMainWindow(QWidget *parent) :
     connect( ui->btn_play_stop, SIGNAL( clicked(bool) ), this, SLOT( OnPlayStopClicked() ) );
     connect( ui->btn_play_stop, SIGNAL( clicked(bool) ), this, SLOT( DelayNextClick() ) );
 
-    connect( ui->btn_forward, SIGNAL( clicked(bool) ), this, SLOT( OnSeekForward() ) );
-    connect( ui->btn_forward, SIGNAL( clicked(bool) ), this, SLOT( DelayNextClick() ) );
-
-    connect( ui->btn_back, SIGNAL( clicked(bool) ), this, SLOT( OnSeekBackward() ) );
-    connect( ui->btn_back, SIGNAL( clicked(bool) ), this, SLOT( DelayNextClick() ) );
-
     connect( ui->frame_area, SIGNAL( frameShown() ), this, SLOT( OnFrameShown() ) );
     connect( ui->frame_area, SIGNAL( frameProcessed(AVFrame*) ), this, SLOT( OnFrameProcessed(AVFrame*) ) );
     connect( ui->time_slider, SIGNAL( sliderReleased()), this, SLOT( OnSliderReleased() ) );
     connect( ui->time_slider, SIGNAL( sliderPressed()), this, SLOT( OnSliderPressed() ) );
-    connect( ui->volume_slider, SIGNAL( sliderMoved(int) ), this, SIGNAL( setVolume(int) ) );
+    //connect( ui->volume_slider, SIGNAL( sliderMoved(int) ), this, SIGNAL( setVolume(int) ) );
+
+    ui->btn_play_stop->SetIconSize( QSize( 32, 32 ) );
+    ui->btn_fullscreen->SetIconSize( QSize( 32, 32 ) );
+    ui->btn_volume->SetIconSize( QSize( 32, 32 ) );
+
+    ui->btn_play_stop->SetNormalIcon( QIcon( ":img/resources/play.png" ) );
+    ui->btn_fullscreen->SetNormalIcon( QIcon( ":img/resources/play.png" ) );
+    ui->btn_volume->SetNormalIcon( QIcon( ":/img/resources/play.png" ) );
+
+    ui->btn_play_stop->SetHoverIcon( QIcon( ":/img/resources/play_hover.png" ) );
+    ui->btn_fullscreen->SetHoverIcon( QIcon( ":/img/resources/play_hover.png" ) );
+    ui->btn_volume->SetHoverIcon( QIcon( ":/img/resources/play_hover.png" ) );
 }
 
 void QEdgeMainWindow::Init( IPlayer* player )
