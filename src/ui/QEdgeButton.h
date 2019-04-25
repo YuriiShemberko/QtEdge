@@ -17,6 +17,8 @@ public:
     void SetCheckedIcon( const QIcon& icon );
     void SetCheckedHoverIcon( const QIcon& icon );
     void SetCheckedDisabledIcon( const QIcon& icon );
+    void SetClickedIcon( const QIcon& icon );
+    void SetClickedCheckedIcon( const QIcon& icon );
 
 protected:
     virtual bool event( QEvent* ev );
@@ -27,11 +29,11 @@ private slots:
 private:
     QSize m_icon_size;
     QIcon m_normal_icon;
-    QIcon m_disabled_icon;
     QIcon m_hover_icon;
     QIcon m_checked_icon;
     QIcon m_checked_hover_icon;
-    QIcon m_checked_disabled_icon;
+    QIcon m_clicked_icon;
+    QIcon m_clicked_checked_icon;
 
     bool m_show_first_time;
 };

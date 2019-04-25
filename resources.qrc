@@ -3,5 +3,28 @@
         <file>resources/curtain.png</file>
         <file>resources/play.png</file>
         <file>resources/play_hover.png</file>
+        <file>resources/play_clicked.png</file>
+        <file>resources/play_disabled.png</file>
+        <file>resources/pause.png</file>
+        <file>resources/pause_clicked.png</file>
+        <file>resources/pause_disabled.png</file>
+        <file>resources/pause_hover.png</file>
+        <file>resources/fullscreen.png</file>
+        <file>resources/fullscreen_clicked.png</file>
+        <file>resources/fullscreen_disabled.png</file>
+        <file>resources/fullscreen_hover.png</file>
+        <file>resources/muted.png</file>
+        <file>resources/muted_clicked.png</file>
+        <file>resources/muted_disabled.png</file>
+        <file>resources/muted_hover.png</file>
+        <file>resources/vol.png</file>
+        <file>resources/vol_clicked.png</file>
+        <file>resources/vol_disabled.png</file>
+        <file>resources/vol_hover.png</file>
+        <file>resources/vol_mute.png</file>
+        <file>resources/win.png</file>
+        <file>resources/win_clicked.png</file>
+        <file>resources/win_disabled.png</file>
+        <file>resources/win_hover.png</file>
     </qresource>
 </RCC>

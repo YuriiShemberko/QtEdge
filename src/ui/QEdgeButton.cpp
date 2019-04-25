@@ -13,7 +13,7 @@ void QEdgeButton::SetIconSize( const QSize& size )
 
 void QEdgeButton::SetDisabledIcon( const QIcon& icon )
 {
-    m_disabled_icon = icon;
+    m_normal_icon.addPixmap( icon.pixmap(width(), height() ), QIcon::Disabled );
 }
 
 void QEdgeButton::OnCheckedChagned( bool checked )
@@ -46,33 +46,24 @@ void QEdgeButton::SetCheckedHoverIcon( const QIcon& icon )
 
 void QEdgeButton::SetCheckedDisabledIcon( const QIcon &icon )
 {
-    m_checked_disabled_icon = icon;
+    m_checked_icon.addPixmap( icon.pixmap(width(), height() ), QIcon::Disabled );
+}
+
+void QEdgeButton::SetClickedIcon( const QIcon &icon )
+{
+    m_clicked_icon = icon;
+}
+
+void QEdgeButton::SetClickedCheckedIcon( const QIcon &icon )
+{
+    m_clicked_checked_icon = icon;
 }
 
 bool QEdgeButton::event( QEvent *ev )
 {
-    if( ev->type() == QEvent::Show && m_show_first_time )
+    if( ( ev->type() == QEvent::Show && m_show_first_time ) || ev->type() == QEvent::EnabledChange )
     {
-        if( isEnabled() )
-        {
-            setIcon( isCheckable() && isChecked() ? m_checked_icon : m_normal_icon );
-        }
-        else
-        {
-            setIcon( isCheckable() && isChecked() ? m_checked_disabled_icon : m_disabled_icon );
-        }
-    }
-
-    else if( ev->type() == QEvent::EnabledChange )
-    {
-        if( isEnabled() )
-        {
-            setIcon( isCheckable() && isChecked() ? m_checked_icon : m_normal_icon );
-        }
-        else
-        {
-            setIcon( isCheckable() && isChecked() ? m_checked_disabled_icon : m_disabled_icon );
-        }
+        setIcon( isCheckable() && isChecked() ? m_checked_icon : m_normal_icon );
     }
 
     else if( ev->type() == QEvent::Enter )
@@ -84,6 +75,22 @@ bool QEdgeButton::event( QEvent *ev )
     }
 
     else if( ev->type() == QEvent::Leave )
+    {
+        if( isEnabled() )
+        {
+            setIcon( isCheckable() && isChecked() ? m_checked_icon : m_normal_icon );
+        }
+    }
+
+    else if( ev->type() == QEvent::MouseButtonPress )
+    {
+        if( isEnabled() )
+        {
+            setIcon( isCheckable() && isChecked() ? m_clicked_checked_icon : m_clicked_icon );
+        }
+    }
+
+    else if( ev->type() == QEvent::MouseButtonRelease )
     {
         if( isEnabled() )
         {

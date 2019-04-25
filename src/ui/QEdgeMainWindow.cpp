@@ -25,17 +25,46 @@ QEdgeMainWindow::QEdgeMainWindow(QWidget *parent) :
     connect( ui->time_slider, SIGNAL( sliderPressed()), this, SLOT( OnSliderPressed() ) );
     //connect( ui->volume_slider, SIGNAL( sliderMoved(int) ), this, SIGNAL( setVolume(int) ) );
 
+    //---------------------------------------------------------------------------------------
+
     ui->btn_play_stop->SetIconSize( QSize( 32, 32 ) );
-    ui->btn_fullscreen->SetIconSize( QSize( 32, 32 ) );
-    ui->btn_volume->SetIconSize( QSize( 32, 32 ) );
+    ui->btn_fullscreen->SetIconSize( QSize( 32, 24 ) );
+    ui->btn_volume->SetIconSize( QSize( 32, 24 ) );
 
     ui->btn_play_stop->SetNormalIcon( QIcon( ":img/resources/play.png" ) );
-    ui->btn_fullscreen->SetNormalIcon( QIcon( ":img/resources/play.png" ) );
-    ui->btn_volume->SetNormalIcon( QIcon( ":/img/resources/play.png" ) );
-
     ui->btn_play_stop->SetHoverIcon( QIcon( ":/img/resources/play_hover.png" ) );
-    ui->btn_fullscreen->SetHoverIcon( QIcon( ":/img/resources/play_hover.png" ) );
-    ui->btn_volume->SetHoverIcon( QIcon( ":/img/resources/play_hover.png" ) );
+    ui->btn_play_stop->SetDisabledIcon( QIcon( ":img/resources/play_disabled.png" ) );
+    ui->btn_play_stop->SetClickedIcon( QIcon( ":img/resources/play_clicked.png" ) );
+
+    ui->btn_play_stop->SetCheckedIcon( QIcon( ":img/resources/pause.png" ) );
+    ui->btn_play_stop->SetCheckedHoverIcon( QIcon( ":/img/resources/pause_hover.png" ) );
+    ui->btn_play_stop->SetCheckedDisabledIcon( QIcon( ":img/resources/pause_disabled.png" ) );
+    ui->btn_play_stop->SetClickedCheckedIcon( QIcon( ":img/resources/pause_clicked.png" ) );
+
+    //---------------------------------------------------------------------------------------
+
+    ui->btn_volume->SetNormalIcon( QIcon( ":img/resources/vol.png" ) );
+    ui->btn_volume->SetHoverIcon( QIcon( ":/img/resources/vol_hover.png" ) );
+    ui->btn_volume->SetDisabledIcon( QIcon( ":img/resources/vol_disabled.png" ) );
+    ui->btn_volume->SetClickedIcon( QIcon( ":img/resources/vol_clicked.png" ) );
+
+    ui->btn_volume->SetCheckedIcon( QIcon( ":img/resources/muted.png" ) );
+    ui->btn_volume->SetCheckedHoverIcon( QIcon( ":/img/resources/muted_hover.png" ) );
+    ui->btn_volume->SetCheckedDisabledIcon( QIcon( ":img/resources/muted_disabled.png" ) );
+    ui->btn_volume->SetClickedCheckedIcon( QIcon( ":img/resources/muted_clicked.png" ) );
+
+    //---------------------------------------------------------------------------------------
+
+    ui->btn_fullscreen->SetNormalIcon( QIcon( ":img/resources/fullscreen.png" ) );
+    ui->btn_fullscreen->SetHoverIcon( QIcon( ":/img/resources/fullscreen_hover.png" ) );
+    ui->btn_fullscreen->SetDisabledIcon( QIcon( ":img/resources/fullscreen_disabled.png" ) );
+    ui->btn_fullscreen->SetClickedIcon( QIcon( ":img/resources/fullscreen_clicked.png" ) );
+
+    ui->btn_fullscreen->SetCheckedIcon( QIcon( ":img/resources/win.png" ) );
+    ui->btn_fullscreen->SetCheckedHoverIcon( QIcon( ":/img/resources/win_hover.png" ) );
+    ui->btn_fullscreen->SetCheckedDisabledIcon( QIcon( ":img/resources/win_disabled.png" ) );
+    ui->btn_fullscreen->SetClickedCheckedIcon( QIcon( ":img/resources/win_clicked.png" ) );
+
 }
 
 void QEdgeMainWindow::Init( IPlayer* player )
