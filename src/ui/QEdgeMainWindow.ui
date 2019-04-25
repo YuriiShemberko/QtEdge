@@ -70,16 +70,6 @@ QMenuBar::item {
       <property name="styleSheet">
        <string notr="true">QWidget#frame_area { background-color: black; }</string>
       </property>
-      <widget class="QWidget" name="play_stop_widget" native="true">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>0</y>
-         <width>41</width>
-         <height>41</height>
-        </rect>
-       </property>
-      </widget>
      </widget>
     </item>
     <item row="1" column="1" rowspan="2">
