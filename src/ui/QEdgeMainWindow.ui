@@ -6,14 +6,20 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>801</width>
-    <height>572</height>
+    <width>550</width>
+    <height>410</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>400</width>
-    <height>300</height>
+    <width>550</width>
+    <height>410</height>
+   </size>
+  </property>
+  <property name="sizeIncrement">
+   <size>
+    <width>4</width>
+    <height>0</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -40,7 +46,26 @@ QMenuBar::item {
 
  QMenu::item {
  color: #FFFFFF;
- }</string>
+ }
+
+QSlider:handle {
+	image: url(&quot;:/img/resources/slider.png&quot;);
+	width: 16px;
+	height: 16px;
+}
+
+QSlider:handle:hover {
+	image: url(&quot;:/img/resources/slider_hover.png&quot;);
+}
+
+QSlider:handle:disabled {
+	image: url(&quot;:/img/resources/slider_disabled.png&quot;);
+}
+
+QSlider:handle:pressed {
+	image: url(&quot;:/img/resources/slider_clicked.png&quot;);
+}
+</string>
   </property>
   <widget class="QWidget" name="central_widget">
    <layout class="QGridLayout" name="gridLayout">
@@ -229,7 +254,7 @@ QMenuBar::item {
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>801</width>
+     <width>550</width>
      <height>21</height>
     </rect>
    </property>

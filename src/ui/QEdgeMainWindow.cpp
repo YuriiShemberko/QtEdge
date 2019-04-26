@@ -65,6 +65,12 @@ QEdgeMainWindow::QEdgeMainWindow(QWidget *parent) :
     ui->btn_fullscreen->SetCheckedDisabledIcon( QIcon( ":img/resources/win_disabled.png" ) );
     ui->btn_fullscreen->SetClickedCheckedIcon( QIcon( ":img/resources/win_clicked.png" ) );
 
+    ui->time_slider->setEnabled( false );
+
+    m_volume_slider = new QDropDownVolumeSlider( ui->btn_volume, 0, 100 );
+
+    connect( m_volume_slider, SIGNAL( valueChanged( int ) ), this, SIGNAL( setVolume( int ) ) );
+    connect( ui->btn_volume, SIGNAL( clicked( bool ) ), this, SLOT( OnBtnVolumeClicked( bool ) ) );
 }
 
 void QEdgeMainWindow::Init( IPlayer* player )
@@ -95,7 +101,7 @@ void QEdgeMainWindow::OnFinished()
 
 void QEdgeMainWindow::PlayerStarted()
 {
-
+    ui->time_slider->setEnabled( true );
 }
 
 void QEdgeMainWindow::PlayerStopped()
@@ -159,20 +165,6 @@ void QEdgeMainWindow::RequestSeek( int seek_value )
     m_player->Seek( seek_value );
 }
 
-void QEdgeMainWindow::OnSeekForward()
-{
-    int seek_value = std::min( m_video_duration, ui->time_slider->value() + 5000 );
-    ui->time_slider->setValue( seek_value );
-    RequestSeek( seek_value );
-}
-
-void QEdgeMainWindow::OnSeekBackward()
-{
-    int seek_value = std::max( 0, ui->time_slider->value() - 5000 );
-    ui->time_slider->setValue( seek_value );
-    RequestSeek( seek_value );
-}
-
 void QEdgeMainWindow::OnPlayStopClicked()
 {
     //TMP!!!
@@ -212,6 +204,13 @@ void QEdgeMainWindow::OnFrameShown()
 void QEdgeMainWindow::OnFrameProcessed( AVFrame *frame )
 {
     m_player->VideoProcessed( frame );
+}
+
+void QEdgeMainWindow::OnBtnVolumeClicked( bool checked )
+{
+    int value = checked ? 0 : 100;
+    m_volume_slider->SetValue( value );
+    emit setVolume( value );
 }
 
 QEdgeMainWindow::~QEdgeMainWindow()

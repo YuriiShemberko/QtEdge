@@ -7,6 +7,7 @@
 #include <core/IPlayer.h>
 #include <core/QEdgeAudioReproductor.h>
 #include <ui/QEdgeButton.h>
+#include <ui/QDropDownVolumeSlider.h>
 
 namespace Ui {
 class QEdgeMainWindow;
@@ -39,10 +40,9 @@ private slots:
     void OnSliderReleased();
     void DelayNextClick();
     void EnableClickedBtn();
-    void OnSeekForward();
-    void OnSeekBackward();
     void OnFrameShown();
     void OnFrameProcessed( AVFrame* frame );
+    void OnBtnVolumeClicked( bool checked );
 signals:
     void PlayStopClicked( bool play );
     void setVolume( int value );
@@ -58,6 +58,7 @@ private:
     volatile bool m_seeking;
     QString m_file_name;
 
+    QDropDownVolumeSlider* m_volume_slider;
     QPushButton* m_clicked_btn;
 };
 

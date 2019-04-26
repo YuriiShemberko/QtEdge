@@ -26,5 +26,9 @@
         <file>resources/win_clicked.png</file>
         <file>resources/win_disabled.png</file>
         <file>resources/win_hover.png</file>
+        <file>resources/slider.png</file>
+        <file>resources/slider_clicked.png</file>
+        <file>resources/slider_disabled.png</file>
+        <file>resources/slider_hover.png</file>
     </qresource>
 </RCC>

@@ -42,6 +42,7 @@ private:
     Ui::QEdgeFrameView *ui;
     AVFrame* m_current_frame;
     QImage* m_image;
+    QImage m_curtain_img;
     std::mutex m_frame_mtx;
 };
 
