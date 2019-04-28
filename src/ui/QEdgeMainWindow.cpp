@@ -11,10 +11,13 @@ QEdgeMainWindow::QEdgeMainWindow(QWidget *parent) :
     m_started( false ),
     m_player( CNullPlayer::Instance() ),
     m_video_duration( 0 ),
-    m_seeking( false ),
-    m_paused( false )
+    m_paused( false ),
+    m_seeking( false )
 {
     ui->setupUi(this);
+
+    m_volume_slider = new QDropDownVolumeSlider( ui->btn_volume, 0, 100 );
+    m_volume_slider->SetValue( 100 );
 
     connect( ui->btn_play_stop, SIGNAL( clicked(bool) ), this, SLOT( OnPlayStopClicked() ) );
     connect( ui->btn_play_stop, SIGNAL( clicked(bool) ), this, SLOT( DelayNextClick() ) );
@@ -23,7 +26,8 @@ QEdgeMainWindow::QEdgeMainWindow(QWidget *parent) :
     connect( ui->frame_area, SIGNAL( frameProcessed(AVFrame*) ), this, SLOT( OnFrameProcessed(AVFrame*) ) );
     connect( ui->time_slider, SIGNAL( sliderReleased()), this, SLOT( OnSliderReleased() ) );
     connect( ui->time_slider, SIGNAL( sliderPressed()), this, SLOT( OnSliderPressed() ) );
-    //connect( ui->volume_slider, SIGNAL( sliderMoved(int) ), this, SIGNAL( setVolume(int) ) );
+    connect( m_volume_slider, SIGNAL( valueChanged( int ) ), this, SIGNAL( setVolume( int ) ) );
+    connect( ui->btn_volume, SIGNAL( clicked( bool ) ), this, SLOT( OnBtnVolumeClicked( bool ) ) );
 
     //---------------------------------------------------------------------------------------
 
@@ -66,11 +70,6 @@ QEdgeMainWindow::QEdgeMainWindow(QWidget *parent) :
     ui->btn_fullscreen->SetClickedCheckedIcon( QIcon( ":img/resources/win_clicked.png" ) );
 
     ui->time_slider->setEnabled( false );
-
-    m_volume_slider = new QDropDownVolumeSlider( ui->btn_volume, 0, 100 );
-
-    connect( m_volume_slider, SIGNAL( valueChanged( int ) ), this, SIGNAL( setVolume( int ) ) );
-    connect( ui->btn_volume, SIGNAL( clicked( bool ) ), this, SLOT( OnBtnVolumeClicked( bool ) ) );
 }
 
 void QEdgeMainWindow::Init( IPlayer* player )
@@ -102,6 +101,7 @@ void QEdgeMainWindow::OnFinished()
 void QEdgeMainWindow::PlayerStarted()
 {
     ui->time_slider->setEnabled( true );
+    emit setVolume( m_volume_slider->GetValue() );
 }
 
 void QEdgeMainWindow::PlayerStopped()
@@ -172,7 +172,7 @@ void QEdgeMainWindow::OnPlayStopClicked()
     if( !f )
     {
         f = true;
-        m_file_name = QString("C:/Users/Shemberko/Desktop/testb.mp4");
+        m_file_name = QString("C:/Users/Shemberko/Desktop/test.mp4");
         m_player->Start( m_file_name );
         m_started = true;
         return;

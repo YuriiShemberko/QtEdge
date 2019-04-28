@@ -62,9 +62,6 @@ void QEdgeMediaController::Stop()
 
 void QEdgeMediaController::Seek( int64_t msec )
 {
-    Q_UNUSED( msec );
-    m_video_decoder.StopDecode( true );
-    m_audio_decoder.StopDecode( true );
     m_demuxer.Seek( msec );
 }
 

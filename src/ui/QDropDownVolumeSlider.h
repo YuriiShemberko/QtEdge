@@ -15,6 +15,7 @@ class QDropDownVolumeSlider : public QWidget
 public:
     explicit QDropDownVolumeSlider( QWidget* dock_widget, int min, int max );
     void SetValue( int value );
+    int GetValue();
     ~QDropDownVolumeSlider();
 
 signals:

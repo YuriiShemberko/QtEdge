@@ -1,4 +1,4 @@
-#include "QEdgeSynchronizer.h"
+#include <core/QEdgeSynchronizer.h>
 #include <thread>
 #include <QDebug>
 
@@ -27,6 +27,7 @@ void QEdgeSynchronizer::SessionStarted( const AVStream *video_stream, const AVSt
     m_frame_last_pts = 0;
     m_current_frame_pts = 0;
     m_audio_remains = 0;
+    m_audio_buffer_full = false;
     m_video_started = false;
     m_audio_started = false;
 }
@@ -47,6 +48,8 @@ void QEdgeSynchronizer::OnAudioPresented( long long buffer_remains )
         m_audio_started_condition.notify_one();
         Q_UNUSED( audio_started_lock );
     }
+
+    m_audio_buffer_full = buffer_remains >= AV_MAX_AUDIO_BUF_SIZE;
 }
 
 void QEdgeSynchronizer::OnVideoPresented()
@@ -84,7 +87,13 @@ void QEdgeSynchronizer::PushNextFrame( AVFrame* frame )
 void QEdgeSynchronizer::ProcessAudio( AVFrame *frame )
 {
     UpdateAudioRate( frame );
-    m_receiver->OnNewAudioFrame( frame ); //no need to delay audio
+
+    while( m_audio_buffer_full )
+    {
+        utils::QEdgeSleep( 10 );
+    }
+
+    m_receiver->OnNewAudioFrame( frame );
 }
 
 int QEdgeSynchronizer::GetMsDelay( double delay )

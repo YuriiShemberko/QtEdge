@@ -8,9 +8,12 @@
 
 #include <QEvent>
 #include <QCoreApplication>
+#include <QDebug>
 
 #include <core/IDecoder.h>
 #include <core/QEdgeUtils.h>
+
+typedef utils::QEdgeMultithreadQueue<AVPacket*> QEdgePacketQueue;
 
 class QEdgeDecoderBase : public QObject, public IDecoder
 {
@@ -51,7 +54,7 @@ protected:
     std::unique_ptr<IDecoderSubscriber> m_subscriber;
     std::unique_ptr<AVCodecContext> m_codec_context;
 
-    utils::QEdgeMultithreadQueue<AVPacket*> m_packet_queue;
+    QEdgePacketQueue m_packet_queue;
     std::unique_ptr<std::thread> m_decode_thread;
 
     volatile bool m_running;

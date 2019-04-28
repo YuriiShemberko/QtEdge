@@ -27,6 +27,11 @@ void QDropDownVolumeSlider::SetValue( int value )
     ui->label->setText( QString::number( value ) );
 }
 
+int QDropDownVolumeSlider::GetValue()
+{
+    return ui->slider->value();
+}
+
 QDropDownVolumeSlider::~QDropDownVolumeSlider()
 {
     delete ui;

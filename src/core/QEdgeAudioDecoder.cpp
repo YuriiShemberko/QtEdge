@@ -3,7 +3,7 @@
 QEdgeAudioDecoder::QEdgeAudioDecoder() {}
 
 void QEdgeAudioDecoder::Decode( AVPacket *packet )
-{
+{   
     int result = -1;
     result = avcodec_send_packet( m_codec_context.get(), packet );
 

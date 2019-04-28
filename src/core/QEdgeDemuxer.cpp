@@ -1,12 +1,6 @@
 #include <core/QEdgeDemuxer.h>
 #include <core/QEdgeUtils.h>
-
-extern "C"{
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-#include <libswscale/swscale.h>
-#include <libavutil/imgutils.h>
-}
+#include <core/Global.h>
 
 #include <QDebug>
 
@@ -149,7 +143,7 @@ void QEdgeDemuxer::DemuxInThread( void *ctx )
     }
 
     int res = 0;
-    while( res >= 0 )
+    while( res >= 0 && host->m_running )
     {
         AVPacket* packet = av_packet_alloc();
         res =  av_read_frame( format_context, packet );
@@ -171,6 +165,7 @@ void QEdgeDemuxer::DemuxInThread( void *ctx )
         }
     }
 
+    avformat_flush( format_context );
     avformat_close_input( &format_context );
     avformat_free_context( format_context );
     host->OnFinished();

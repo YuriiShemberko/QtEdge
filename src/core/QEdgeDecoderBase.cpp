@@ -110,6 +110,12 @@ void QEdgeDecoderBase::OnNewPacket( AVPacket *packet )
 
 void QEdgeDecoderBase::PushPacket( AVPacket* packet )
 {
+    //wait for queue's free space
+    while( m_packet_queue.Size() >= QEdgePacketQueue::s_max_size )
+    {
+        utils::QEdgeSleep( 10 );
+    }
+
     m_packet_queue.Push( packet );
 }
 
@@ -169,12 +175,14 @@ void QEdgeDecoderBase::DecodeThread( void *ctx )
 
         if( !packet )
         {
+            utils::QEdgeSleep( 20 );
             continue; //wait for next packet
         }
 
         host->Decode( packet );
 
         av_packet_unref( packet );
+        av_packet_free( &packet );
 
         if( host->IsQueueEmpty() && host->m_demuxer_finished )
         {

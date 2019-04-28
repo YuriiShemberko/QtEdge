@@ -51,6 +51,7 @@ void QEdgePlayer::Stop()
 
 void QEdgePlayer::Seek( int64_t msec )
 {
+    m_media_controller.Stop();
     m_audio_receiver->PlayerStopped();
     m_audio_receiver->PlayerStarted();
     m_media_controller.Seek( msec );

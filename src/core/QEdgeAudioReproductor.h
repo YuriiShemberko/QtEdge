@@ -8,6 +8,7 @@
 #include <QEvent>
 
 #include <memory>
+#include <mutex>
 
 class QEdgeBufferizedContainer : public QIODevice
 {
@@ -19,6 +20,7 @@ public:
 
     void Start();
     void Stop();
+    void FreeBuffer();
 
     qint64 readData(char *data, qint64 maxlen) override;
     qint64 writeData(const char *data, qint64 len) override;
@@ -26,11 +28,11 @@ public:
 
 signals:
     void eof();
-    void bufferRead( qint64 remains );
 
 private:
-    qint64 m_pos;
-    QByteArray m_buffer;
+    size_t m_buf_size;
+    std::mutex m_rw_mtx;
+    uint8_t* m_buffer;
     bool m_eof;
 };
 
@@ -62,7 +64,7 @@ protected:
 
 private slots:
     void OnBufferEof();
-    void OnBufferRead(   );
+    void OnBufferRead();
 
 private:
 

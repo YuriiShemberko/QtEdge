@@ -42,6 +42,14 @@ public:
         return value;
     }
 
+    size_t Size()
+    {
+        std::lock_guard<std::mutex> lock( m_mtx );
+        Q_UNUSED( m_mtx );
+
+        return this->size();
+    }
+
     bool IsEmpty()
     {
         std::lock_guard<std::mutex> lock( m_mtx );
@@ -56,6 +64,8 @@ public:
         this->clear();
         Q_UNUSED( m_mtx );
     }
+
+    static const size_t s_max_size = 200;
 
 private:
     std::mutex m_mtx;

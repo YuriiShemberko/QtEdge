@@ -5,8 +5,9 @@
 #include <thread>
 #include <QThread>
 #include <QCoreApplication>
+#include <core/QEdgeUtils.h>
 
-QEdgeBufferizedContainer::QEdgeBufferizedContainer() : QIODevice(), m_pos(0), m_eof(false) {}
+QEdgeBufferizedContainer::QEdgeBufferizedContainer() : QIODevice(), m_buf_size(0), m_eof(false), m_buffer(nullptr) {}
 QEdgeBufferizedContainer::~QEdgeBufferizedContainer() {}
 
 void QEdgeBufferizedContainer::Start()
@@ -16,14 +17,29 @@ void QEdgeBufferizedContainer::Start()
 
 void QEdgeBufferizedContainer::Stop()
 {
+    std::lock_guard<std::mutex> lock( m_rw_mtx );
+    Q_UNUSED( lock );
+
     m_eof = false;
-    m_buffer.clear();
+    FreeBuffer();
     close();
-    m_pos = 0;
+    m_buf_size = 0;
+}
+
+void QEdgeBufferizedContainer::FreeBuffer()
+{
+    if( m_buffer )
+    {
+        free( m_buffer );
+        m_buffer = nullptr;
+    }
 }
 
 qint64 QEdgeBufferizedContainer::readData( char *data, qint64 len )
 {
+    std::lock_guard<std::mutex> lock( m_rw_mtx );
+    Q_UNUSED( lock );
+
     qint64 total = 0;
 
     if( m_eof )
@@ -32,44 +48,49 @@ qint64 QEdgeBufferizedContainer::readData( char *data, qint64 len )
         return 0;
     }
 
-    if( m_pos + len >= m_buffer.size() ) //end
+    if( len >= m_buf_size ) //end
     {
-        total = m_buffer.size() - m_pos;
-        memcpy( data, m_buffer.constData() + m_pos, total );
+        total = m_buf_size;
+        memcpy( data, m_buffer, size_t( total ) );
         m_eof = true;
-        emit bufferRead( 0 );
-        return total;
     }
 
-    if (!m_buffer.isEmpty())
+    else if( m_buf_size > 0 )
     {
-        while (len - total > 0)
-        {
-            const qint64 chunk = qMin( ( m_buffer.size() - m_pos ), len - total );
-            memcpy( data + total, m_buffer.constData() + m_pos, chunk );
-            m_pos = ( m_pos + chunk ) % m_buffer.size();
-            total += chunk;
-        }
+        total = len;
+        memcpy( data, m_buffer, size_t( len ) );
+        m_buf_size -= len;
+        uint8_t* buffer = (uint8_t*)malloc(m_buf_size);
+        memcpy( buffer, m_buffer + len, m_buf_size );
+
+        FreeBuffer();
+        m_buffer = buffer;
     }
 
-    emit bufferRead( m_buffer.size() - m_pos );
     return total;
 }
 
 qint64 QEdgeBufferizedContainer::writeData( const char *data, qint64 len )
 {
-    int pos = m_buffer.size();
+    std::lock_guard<std::mutex> lock( m_rw_mtx );
+    Q_UNUSED( lock );
 
-    m_buffer.resize( m_buffer.size() + len );
+    uint8_t* buffer = (uint8_t*)malloc( m_buf_size + len );
+    memcpy( buffer, m_buffer, size_t( m_buf_size ) );
+    memcpy( buffer + m_buf_size, data, size_t( len ) );
 
-    memcpy( m_buffer.data() + pos, data, len );
+    FreeBuffer();
+
+    m_buffer = buffer;
+
+    m_buf_size += len;
 
     return len;
 }
 
 qint64 QEdgeBufferizedContainer::bytesAvailable() const
 {
-    return m_buffer.size() - m_pos;
+    return m_buf_size;
 }
 
 QEdgeAudioReproductor::QEdgeAudioReproductor() :
@@ -183,9 +204,8 @@ bool QEdgeAudioReproductor::event( QEvent* ev )
         {
             m_audio_output.release();
             m_audio_output.reset( new QAudioOutput( QAudioDeviceInfo::defaultOutputDevice(), m_format, this ) );
-            m_audio_output->start( &m_audio_buffer );
-            m_audio_output->setVolume(1);
             m_audio_output->setNotifyInterval( 100 );
+            m_audio_output->start( &m_audio_buffer );
             connect( m_audio_output.get(), SIGNAL(notify()), this, SLOT(OnBufferRead()));
         }
 

@@ -15,10 +15,6 @@
 #include <core/ISynchronizer.h>
 #include <core/QEdgeUtils.h>
 
-#define AV_SYNC_THRESHOLD 0.01
-#define AV_NOSYNC_THRESHOLD 10.0
-#define AV_NOSYNC_DELAY 0.03
-
 class QEdgeSynchronizer : public QObject, public ISynchronizer
 {
     Q_OBJECT
@@ -59,6 +55,7 @@ private:
     long long m_audio_remains;
     double m_next_delay;
     bool m_video_started;
+    bool m_audio_buffer_full;
 
     QElapsedTimer m_sync_timer;
 
