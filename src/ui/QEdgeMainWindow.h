@@ -8,6 +8,7 @@
 #include <core/QEdgeAudioReproductor.h>
 #include <ui/QEdgeButton.h>
 #include <ui/QDropDownVolumeSlider.h>
+#include <QTimer>
 
 namespace Ui {
 class QEdgeMainWindow;
@@ -32,7 +33,9 @@ public:
     virtual void CurrentTimestampChanged( int64_t msecs ) override;
 
 protected:
-    void closeEvent( QCloseEvent* ev ) override;
+    virtual void closeEvent( QCloseEvent* ev ) override;
+    virtual bool eventFilter( QObject* watched, QEvent* event ) override;
+    virtual bool event( QEvent* event ) override;
 
 private slots:
     void OnPlayStopClicked();
@@ -43,6 +46,10 @@ private slots:
     void OnFrameShown();
     void OnFrameProcessed( AVFrame* frame );
     void OnBtnVolumeClicked( bool checked );
+    void OnFullScreenRequested( bool fs );
+    void OnHideTimerTimeout();
+    void OnOpenFile();
+
 signals:
     void PlayStopClicked( bool play );
     void setVolume( int value );
@@ -57,6 +64,8 @@ private:
     bool m_paused;
     volatile bool m_seeking;
     QString m_file_name;
+
+    QTimer m_controls_hide_timer;
 
     QDropDownVolumeSlider* m_volume_slider;
     QPushButton* m_clicked_btn;

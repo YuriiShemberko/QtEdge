@@ -4,6 +4,7 @@
 #include <QDebug>
 #include <QTimer>
 #include <QDateTime>
+#include <QFileDialog>
 
 QEdgeMainWindow::QEdgeMainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -28,6 +29,9 @@ QEdgeMainWindow::QEdgeMainWindow(QWidget *parent) :
     connect( ui->time_slider, SIGNAL( sliderPressed()), this, SLOT( OnSliderPressed() ) );
     connect( m_volume_slider, SIGNAL( valueChanged( int ) ), this, SIGNAL( setVolume( int ) ) );
     connect( ui->btn_volume, SIGNAL( clicked( bool ) ), this, SLOT( OnBtnVolumeClicked( bool ) ) );
+    connect( ui->btn_fullscreen, SIGNAL( clicked( bool ) ), this, SLOT( OnFullScreenRequested( bool ) ) );
+    connect( &m_controls_hide_timer, SIGNAL( timeout() ), this, SLOT( OnHideTimerTimeout() ) );
+    connect( ui->action_open, SIGNAL( triggered() ), this, SLOT( OnOpenFile() ) );
 
     //---------------------------------------------------------------------------------------
 
@@ -69,7 +73,10 @@ QEdgeMainWindow::QEdgeMainWindow(QWidget *parent) :
     ui->btn_fullscreen->SetCheckedDisabledIcon( QIcon( ":img/resources/win_disabled.png" ) );
     ui->btn_fullscreen->SetClickedCheckedIcon( QIcon( ":img/resources/win_clicked.png" ) );
 
+    ui->btn_play_stop->setEnabled( false );
     ui->time_slider->setEnabled( false );
+    ui->frame_area->installEventFilter( this );
+    ui->widget_btns->installEventFilter( this );
 }
 
 void QEdgeMainWindow::Init( IPlayer* player )
@@ -106,7 +113,7 @@ void QEdgeMainWindow::PlayerStarted()
 
 void QEdgeMainWindow::PlayerStopped()
 {
-
+    ui->btn_play_stop->setChecked( false );
 }
 
 void QEdgeMainWindow::OnSliderPressed()
@@ -160,6 +167,63 @@ void QEdgeMainWindow::closeEvent( QCloseEvent *ev )
     QMainWindow::closeEvent( ev );
 }
 
+bool QEdgeMainWindow::eventFilter( QObject* watched, QEvent *event )
+{
+    if( watched == ui->frame_area )
+    {
+        if( isFullScreen() )
+        {
+            if( event->type() == QEvent::MouseMove )
+            {
+                if( isFullScreen() )
+                {
+                    ui->widget_btns->show();
+                    m_controls_hide_timer.stop();
+                    m_controls_hide_timer.start( 2000 );
+                    ui->frame_area->update();
+                }
+            }
+        }
+    }
+
+    else if( watched == ui->widget_btns )
+    {
+        if( isFullScreen() )
+        {
+            if( event->type() == QEvent::Leave )
+            {
+                m_controls_hide_timer.stop();
+                m_controls_hide_timer.start( 2000 );
+            }
+        }
+    }
+
+    return false;
+}
+
+bool QEdgeMainWindow::event( QEvent *event )
+{
+    if( event->type() == QEvent::MouseButtonDblClick )
+    {
+        ui->btn_fullscreen->click();
+    }
+
+    else if( event->type() == QEvent::KeyPress )
+    {
+        QKeyEvent* key_event = static_cast<QKeyEvent*>( event );
+
+        if( key_event->key() == Qt::Key_Escape )
+        {
+            if( isFullScreen() )
+            {
+                ui->btn_fullscreen->click();
+            }
+        }
+    }
+
+    return QWidget::event( event );
+}
+
 void QEdgeMainWindow::RequestSeek( int seek_value )
 {
     m_player->Seek( seek_value );
@@ -167,18 +231,6 @@ void QEdgeMainWindow::RequestSeek( int seek_value )
 
 void QEdgeMainWindow::OnPlayStopClicked()
 {
-    //TMP!!!
-    static bool f = false;
-    if( !f )
-    {
-        f = true;
-        m_file_name = QString("C:/Users/Shemberko/Desktop/test.mp4");
-        m_player->Start( m_file_name );
-        m_started = true;
-        return;
-    }
-    //------------------
-
     if( !m_paused )
     {
         m_player->Pause();
@@ -211,6 +263,56 @@ void QEdgeMainWindow::OnBtnVolumeClicked( bool checked )
     int value = checked ? 0 : 100;
     m_volume_slider->SetValue( value );
     emit setVolume( value );
+}
+
+void QEdgeMainWindow::OnFullScreenRequested( bool fs )
+{
+    if( fs )
+    {
+        m_controls_hide_timer.start( 2000 );
+        showFullScreen();
+    }
+
+    else
+    {
+        m_controls_hide_timer.stop();
+        ui->widget_btns->show();
+        ui->menu_bar->show();
+        showNormal();
+    }
+}
+
+void QEdgeMainWindow::OnHideTimerTimeout()
+{
+    if( isFullScreen() )
+    {
+        QPoint mouse_pos = QCursor::pos();
+        QRect geometry = ui->widget_btns->geometry();
+
+        if( mouse_pos.x() >= geometry.left() && mouse_pos.x() <= geometry.right()
+                && mouse_pos.y() >= geometry.top() && mouse_pos.y() <= geometry.bottom() )
+        {
+            return;
+        }
+    }
+
+    ui->widget_btns->hide();
+    ui->menu_bar->hide();
+}
+
+void QEdgeMainWindow::OnOpenFile()
+{
+    QString file_name = QFileDialog::getOpenFileName( this, tr( "Open Video" ), "",
+        tr( "Video Files (*.mp4 *.3gp *.avi);" ) );
+
+    if( !file_name.isEmpty() )
+    {
+        m_file_name = file_name;
+        ui->btn_play_stop->setEnabled( true );
+        ui->btn_play_stop->setChecked( true );
+        m_player->Start( m_file_name );
+        m_started = true;
+    }
 }
 
 QEdgeMainWindow::~QEdgeMainWindow()

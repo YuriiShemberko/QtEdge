@@ -2,7 +2,7 @@
 
 QEdgeButton::QEdgeButton( QWidget* parent ) : QPushButton( parent ), m_show_first_time( true )
 {
-    connect( this, SIGNAL( toggled( bool ) ), this, SLOT( OnCheckedChagned( bool ) ) );
+    connect( this, SIGNAL( toggled( bool ) ), this, SLOT( OnCheckedChanged( bool ) ) );
 }
 
 void QEdgeButton::SetIconSize( const QSize& size )
@@ -16,11 +16,18 @@ void QEdgeButton::SetDisabledIcon( const QIcon& icon )
     m_normal_icon.addPixmap( icon.pixmap(width(), height() ), QIcon::Disabled );
 }
 
-void QEdgeButton::OnCheckedChagned( bool checked )
+void QEdgeButton::OnCheckedChanged( bool checked )
 {
     if( isCheckable() )
     {
-        setIcon( checked ? m_checked_hover_icon : m_hover_icon );
+        QPoint mouse_global = QCursor::pos();
+        QPoint mouse_pos = parentWidget()->mapFromGlobal( mouse_global );
+
+        bool over_btn = mouse_pos.x() >= geometry().left() && mouse_pos.x() <= geometry().right()
+                && mouse_pos.y() >= geometry().top() && mouse_pos.y() <= geometry().bottom();
+
+        setIcon( checked ? ( over_btn ? m_checked_hover_icon : m_checked_icon )
+                         : ( over_btn ? m_hover_icon : m_normal_icon ) );
     }
 }
 

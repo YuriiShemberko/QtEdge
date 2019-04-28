@@ -12,6 +12,7 @@ QEdgeFrameView::QEdgeFrameView( QWidget *parent ) :
     m_curtain_img( ":img/resources/curtain.png" )
 {
     ui->setupUi( this );
+    setMouseTracking( true );
 }
 
 QEdgeFrameView::~QEdgeFrameView()
@@ -102,6 +103,13 @@ void QEdgeFrameView::paintEvent( QPaintEvent *ev )
     painter.end();
 
     Q_UNUSED( ev );
+}
+
+void QEdgeFrameView::resizeEvent( QResizeEvent *ev )
+{
+    Q_UNUSED( ev );
+    QCoreApplication::removePostedEvents( this, QUpdatePreviewEvent::EventType );
+    QCoreApplication::postEvent( this, new QUpdatePreviewEvent() );
 }
 
 bool QEdgeFrameView::event( QEvent *event )

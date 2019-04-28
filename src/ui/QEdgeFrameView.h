@@ -27,6 +27,9 @@ signals:
     void frameShown();
     void frameProcessed( AVFrame* frame );
 
+protected:
+    virtual void resizeEvent( QResizeEvent* ev ) override;
+
 private:
 
     void ResetImage( QImage* image );

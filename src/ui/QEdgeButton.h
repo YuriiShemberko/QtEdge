@@ -24,7 +24,7 @@ protected:
     virtual bool event( QEvent* ev );
 
 private slots:
-    void OnCheckedChagned( bool checked );
+    void OnCheckedChanged( bool checked );
 
 private:
     QSize m_icon_size;
