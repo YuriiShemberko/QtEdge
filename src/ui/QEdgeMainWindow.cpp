@@ -32,6 +32,7 @@ QEdgeMainWindow::QEdgeMainWindow(QWidget *parent) :
     connect( ui->btn_fullscreen, SIGNAL( clicked( bool ) ), this, SLOT( OnFullScreenRequested( bool ) ) );
     connect( &m_controls_hide_timer, SIGNAL( timeout() ), this, SLOT( OnHideTimerTimeout() ) );
     connect( ui->action_open, SIGNAL( triggered() ), this, SLOT( OnOpenFile() ) );
+    connect( ui->action_quit, SIGNAL( triggered() ), this, SLOT( close() ) );
 
     //---------------------------------------------------------------------------------------
 
