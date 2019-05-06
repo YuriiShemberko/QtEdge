@@ -30,5 +30,6 @@
         <file>resources/slider_clicked.png</file>
         <file>resources/slider_disabled.png</file>
         <file>resources/slider_hover.png</file>
+        <file>resources/logo.ico</file>
     </qresource>
 </RCC>

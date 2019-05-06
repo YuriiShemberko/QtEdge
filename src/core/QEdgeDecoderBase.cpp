@@ -132,6 +132,7 @@ void QEdgeDecoderBase::OnFailed( QString err_text )
 
 void QEdgeDecoderBase::OnThreadFinished()
 {
+    m_running = false;
     m_subscriber->OnDecoderFinished( this );
     QCoreApplication::postEvent( this, new QCleanupEvent() );
 }

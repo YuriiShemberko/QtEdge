@@ -81,5 +81,6 @@ INCLUDEPATH += $$PWD/src
 INCLUDEPATH += $$PWD/lib/ffmpeg/include
 LIBS += -L$$PWD/lib/ffmpeg/lib -lavutil -lavcodec -lswscale -lavformat
 
-RESOURCES += \
-    resources.qrc
+RESOURCES += resources.qrc
+
+RC_ICONS += $$PWD/resources/logo.ico
