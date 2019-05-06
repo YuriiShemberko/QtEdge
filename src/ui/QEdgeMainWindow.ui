@@ -42,11 +42,21 @@ QLabel {
 
 QMenuBar::item {
 	color: #FFFFFF;
+	background-color: #333333;
 }
+
+QMenuBar::item:selected {
+	background-color: #555555;
+}
+
 
  QMenu::item {
  color: #FFFFFF;
  }
+
+QMenu::item:selected {
+background-color: #555555;
+}
 
 QSlider:handle {
 	image: url(&quot;:/img/resources/slider.png&quot;);
@@ -266,13 +276,7 @@ QSlider:handle:pressed {
     <addaction name="separator"/>
     <addaction name="action_quit"/>
    </widget>
-   <widget class="QMenu" name="menu_help">
-    <property name="title">
-     <string>Help</string>
-    </property>
-   </widget>
    <addaction name="menu_file"/>
-   <addaction name="menu_help"/>
   </widget>
   <action name="action_open">
    <property name="text">

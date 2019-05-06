@@ -104,6 +104,9 @@ void QEdgeMainWindow::OnFinished()
 {
     m_started = false;
     m_paused = false;
+    ui->btn_play_stop->setChecked( false );
+    ui->label_time->setText( "00:00" );
+    ui->time_slider->setValue( 0 );
 }
 
 void QEdgeMainWindow::PlayerStarted()
@@ -232,6 +235,12 @@ void QEdgeMainWindow::RequestSeek( int seek_value )
 
 void QEdgeMainWindow::OnPlayStopClicked()
 {
+    if( !m_started )
+    {
+        m_started = true;
+        m_player->Start( m_file_name );
+        return;
+    }
     if( !m_paused )
     {
         m_player->Pause();
