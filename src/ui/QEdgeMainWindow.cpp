@@ -251,6 +251,8 @@ void QEdgeMainWindow::OnPlayStopClicked()
     }
 
     m_paused = !m_paused;
+
+    ui->time_slider->setEnabled( !m_paused );
 }
 
 void QEdgeMainWindow::EnableClickedBtn()

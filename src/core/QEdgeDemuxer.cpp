@@ -130,9 +130,10 @@ void QEdgeDemuxer::DemuxInThread( void *ctx )
     {
         int res = 0;
 
-        int64_t frame_idx = utils::MsecsToTimebaseUnits( video_stream->time_base, host->m_seek_ms );
+        int64_t stream_idx = av_find_default_stream_index( format_context );
+        int64_t frame_idx = utils::MsecsToTimebaseUnits( format_context->streams[stream_idx]->time_base, host->m_seek_ms );
 
-        res = avformat_seek_file( format_context, video_stream_index, 0, frame_idx, frame_idx, AVSEEK_FLAG_FRAME );
+        res = avformat_seek_file( format_context, stream_idx, 0, frame_idx, frame_idx, AVSEEK_FLAG_FRAME );
 
         if( res < 0 )
         {
